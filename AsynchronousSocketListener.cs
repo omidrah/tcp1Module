@@ -149,7 +149,7 @@ namespace TCPServer
                 Console.WriteLine(e.ToString());
                   _=Util.LogErrorAsync(e, "84 -- Method -- AcceptCallback").ConfigureAwait(false);
             }
-        }
+            }
 
         private static void clientTimerElapsed(StateObject state)
         {
