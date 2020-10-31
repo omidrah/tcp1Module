@@ -13,8 +13,7 @@ namespace TCPServer
             var builder = new ConfigurationBuilder()
                .SetBasePath(Directory.GetCurrentDirectory())
                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);           
-            IConfigurationRoot configuration = builder.Build();
-            
+            IConfigurationRoot configuration = builder.Build();            
             config = configuration;
             Util.ConnectionStrings = configuration.GetConnectionString("DefaultConnection");
             ServerConfig();
