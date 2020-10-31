@@ -16,11 +16,8 @@ namespace TCPServer
             IConfigurationRoot configuration = builder.Build();
             
             config = configuration;
-
             Util.ConnectionStrings = configuration.GetConnectionString("DefaultConnection");
-
             ServerConfig();
-
             // Task.Run(async () => ServerConfig());
             //WebHost.CreateDefaultBuilder()
             //        .SuppressStatusMessages(true) //disable status message                  
