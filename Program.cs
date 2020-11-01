@@ -50,8 +50,6 @@ namespace TCPServer
             //            });
             //            app.UseElmahIo();
             //        }).Build().Run();
-            
-
         }
 
         private static void ServerConfig()
