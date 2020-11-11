@@ -2037,7 +2037,7 @@ namespace TCPServer
             {
                 try
                 {
-                    string sql = $"SELECT r.* " +
+                    string sql = $"SELECT top 1 r.* " +
                         $" from MachineVersion r " +
                         $" where r.IMEI1 = @IMEI1 and r.IsDone = 0" +
                         $" order by CreateDate Desc " +
