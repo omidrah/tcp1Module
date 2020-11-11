@@ -9,6 +9,8 @@ using TCPServer.Models;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using Elmah.Io.Client.Models;
+using System.IO;
 
 namespace TCPServer
 {
@@ -22,7 +24,9 @@ namespace TCPServer
         public static List<string> SendedTest = new List<string>();
         public static double ctSecond = 10;
         public static Socket listener;
-        public static string Imei1Log = "";
+        public static string Imei1Log = "";        
+        public static string l3Host = string.Empty;
+
         public static void StartListening(string ip, int port,IConfigurationRoot configRoot)
         {            
             Console.WriteLine("*********************************************************");
@@ -43,7 +47,9 @@ namespace TCPServer
             Imei1Log = string.IsNullOrEmpty(configRoot.GetSection("Logging:LogIMEI").Value) ? "All": configRoot.GetSection("Logging:LogIMEI").Value;
 
             ctSecond = double.Parse(configRoot.GetSection("Timer:TClient").Value)*1000;//client Timer, elapsed . microSecond
-
+            
+            l3Host = string.IsNullOrEmpty(configRoot.GetSection("Config:l3MessageFolder").Value) ? string.Empty :
+                                          configRoot.GetSection("Config:l3MessageFolder").Value;
             while (true)
             {               
                 // Set the event to nonsignaled state.  
@@ -54,6 +60,12 @@ namespace TCPServer
                 allDone.WaitOne();
 			}                 
         }
+
+        private static string createConfigParam()
+        {
+            return $"185.192.112.74:80#185.192.112.74:80";
+        }
+
         private static void GenTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             var a = (System.Timers.Timer)sender;

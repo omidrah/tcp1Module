@@ -24,8 +24,8 @@ namespace TCPServer.Models
             IpServer = Ip;
             PortServer = port;
             IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
-            //IPAddress ipAddress = System.Net.IPAddress.Parse(IpServer); 
-            IPAddress ipAddress = System.Net.IPAddress.Any;//for err : The Address Request invaid
+            //IPAddress ipAddress = System.Net.IPAddress.Parse(IpServer); //for err : The Address Request invaid
+            IPAddress ipAddress = System.Net.IPAddress.Any;
             IPEndPoint localEndPoint = new IPEndPoint(ipAddress, PortServer);
             _listener = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             try

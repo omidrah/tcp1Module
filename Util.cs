@@ -6,6 +6,7 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
@@ -185,7 +186,6 @@ namespace TCPServer
             {
                 _ = LogErrorAsync(ex, "ProcessUsd", String.Join("", paramArray)).ConfigureAwait(false);
             }
-
         }
 
         internal static async Task TerminateTest(StateObject state)
@@ -450,8 +450,8 @@ namespace TCPServer
                                 command3.Parameters.AddWithValue("@status", 1);
                                 await command3.ExecuteScalarAsync().ConfigureAwait(false);
                                 tx.Commit();
-                                string VIKey = "BgrUEy5IbpJSnhmqI2IhKw==";
-                                var msg = ($"SYN#\"SId\":{syncMasterId}#" + $"\"DisconnectTime\":\"\"");
+                                string VIKey = "BgrUEy5IbpJSnhmqI2IhKw==";                                
+                                var msg = ($"SYN#\"SId\":{syncMasterId}#");
                                 var content = msg.Encrypt("sample_shared_secret", VIKey);
                                 AsynchronousSocketListener.Send(state.workSocket, VIKey + " ," + content);
                                 if (AsynchronousSocketListener.Imei1Log == "All" || state.IMEI1 == AsynchronousSocketListener.Imei1Log)
@@ -619,7 +619,7 @@ namespace TCPServer
                     if (!string.IsNullOrEmpty(msg))// if uss exist
                     {
                         string VIKey = "BgrUEy5IbpJSnhmqI2IhKw==";
-                        var content = msg.Encrypt("sample_shared_secret", VIKey);
+                        var content = msg.Encrypt("sample_shared_secret", VIKey);                        
                         AsynchronousSocketListener.Send(state.workSocket, VIKey + " ," + content);
                         if (AsynchronousSocketListener.Imei1Log == "All" || state.IMEI1 == AsynchronousSocketListener.Imei1Log)
                         {
@@ -1734,7 +1734,7 @@ namespace TCPServer
                             {
                                 connection.Open();
                                 await command.ExecuteNonQueryAsync().ConfigureAwait(false);
-                                UpdatePreviousTestFinishTime(state, testId).ConfigureAwait(false);
+                                _=UpdatePreviousTestFinishTime(state, testId).ConfigureAwait(false);
                             }
                             catch (Exception ex)
                             {
@@ -1857,7 +1857,18 @@ namespace TCPServer
                         state.Timer.Start();
                     }
                     //first time , register device
-                    _ = Util.UpdateMachineState(state.IMEI1, state.IMEI2, true);
+                    if (!string.IsNullOrEmpty(Array.Find(paramArray, element => element.Contains("FWVer"))))
+                    {
+                        var elem = Array.Find(paramArray, element => element.Contains("FWVer"));
+                        if (!string.IsNullOrEmpty(elem)) //version Exist
+                        {
+                            _ = Util.UpdateMachineStateByVersion(state.IMEI1, state.IMEI2, true,elem.Split(":")[1]);
+                        }
+                    }
+                    else //Version Don't Exist
+                    {
+                        _ = Util.UpdateMachineState(state.IMEI1, state.IMEI2, true);
+                    }
                     if (AsynchronousSocketListener.Imei1Log =="All" || state.IMEI1 == AsynchronousSocketListener.Imei1Log)
                     {
                         Console.ForegroundColor = ConsoleColor.Cyan;
@@ -1908,7 +1919,7 @@ namespace TCPServer
             {
                 try
                 {
-                    string sql = $"SELECT -1 * DTMG.Id Id, dt.Title, dt.Layer3Messages, case when dt.Layer3Messages =1 then '185.192.112.74/Uploads/L3Files' end ServerUrlL3, dt.RepeatTypeId, dt.RepeatTime, dt.RepeatCount, dt.MeasurementInterval, dt.TestTypeId, dt.UsualCallDuration, " +
+                    string sql = $"SELECT -1 * DTMG.Id Id, dt.Title, dt.Layer3Messages, case when dt.Layer3Messages =1 then l3Host end ServerUrlL3, dt.RepeatTypeId, dt.RepeatTime, dt.RepeatCount, dt.MeasurementInterval, dt.TestTypeId, dt.UsualCallDuration, " +
                         $" dt.UsualCallWaitTime, dt.UsualCallNumber, dt.TestDataId, dt.TestDataTypeId, replace(replace(replace(case when(dt.TestDataDownloadFileAddress is null or dt.TestDataDownloadFileAddress = N'')then " +
                         $" dt.TestDataServer else dt.TestDataServer + N'/' + dt.TestDataDownloadFileAddress end ,N'//',N'/'),N'https:/',N''),N'http:/',N'') as TestDataServer, dt.TestDataUserName, dt.TestDataPassword , dt.TestDataUploadFileSize as FileSize, " +
                         $" dt.IPTypeId, dt.OTTServiceId, dt.OTTServiceTestId, dt.NetworkId, dt.BandId , dt.SaveLogFile, dt.LogFilePartitionTypeId, dt.LogFilePartitionTime, " +
@@ -1929,6 +1940,7 @@ namespace TCPServer
                     {
                         command.CommandTimeout = 100000;
                         command.CommandType = CommandType.Text;
+                        command.Parameters.AddWithValue("@l3Host", AsynchronousSocketListener.l3Host);
                         command.Parameters.AddWithValue("@IMEI1", stateObject.IMEI1);
                         connection.Open();
                         definedTest = (string)await command.ExecuteScalarAsync().ConfigureAwait(false);
@@ -1965,7 +1977,7 @@ namespace TCPServer
             {
                 try
                 {
-                    string sql = $"SELECT DTM.Id Id, dt.Title, dt.Layer3Messages, case when dt.Layer3Messages =1 then '185.192.112.74/Uploads/L3Files' end TestDataServerL3, " +
+                    string sql = $"SELECT DTM.Id Id, dt.Title, dt.Layer3Messages, case when dt.Layer3Messages =1 then @l3MessHost end TestDataServerL3, " +
                         $" dt.RepeatTypeId, dt.RepeatTime, dt.RepeatCount, dt.MeasurementInterval, dt.TestTypeId, dt.UsualCallDuration, " +
                         $"dt.UsualCallWaitTime, dt.UsualCallNumber, dt.TestDataId, dt.TestDataTypeId, replace(replace(replace(case when (dt.TestDataDownloadFileAddress is null or dt.TestDataDownloadFileAddress = N'' )then  " +
                         $"dt.TestDataServer else dt.TestDataServer + N'/' + dt.TestDataDownloadFileAddress end ,N'//',N'/'),N'https:/',N''),N'http:/',N'') as TestDataServer, dt.TestDataUserName, dt.TestDataPassword , dt.TestDataUploadFileSize as FileSize, " +
@@ -1985,9 +1997,10 @@ namespace TCPServer
                         $"DTM.IsActive = 1 and DTM.Status = 0 " +/*status = 0, not test*/
                         $"and m.IMEI1 = @IMEI1 for json path";
                     using (SqlCommand command = new SqlCommand(sql, connection))
-                    {
+                    {   
                         command.CommandTimeout = 100000;
                         command.CommandType = CommandType.Text;
+                        command.Parameters.AddWithValue("@l3MessHost", AsynchronousSocketListener.l3Host);
                         command.Parameters.AddWithValue("@IMEI1", stateObject.IMEI1);
                         connection.Open();
                         definedTest = (string)await command.ExecuteScalarAsync().ConfigureAwait(false);
@@ -2300,17 +2313,18 @@ namespace TCPServer
             cryptoStream.Close();
             return Encoding.UTF8.GetString(plainTextBytes, 0, decryptedByteCount).TrimEnd("\0".ToCharArray());
         }
-        internal static async Task UpdateMachineState(string IMEI1, string IMEI2, bool IsConnected)
+        internal static async Task UpdateMachineState(string IMEI1, string IMEI2, bool IsConnected,string machineVersion="")
         {
             using (SqlConnection connection = new SqlConnection(Util.ConnectionStrings))
             {
                 try
                 {
+                    var machineVersionCheck = !string.IsNullOrEmpty(machineVersion) ? ", Version = @Version" : string.Empty;
                     string sql = $"if not exists(select 1 from machine where IMEI1 = @IMEI1) " +
                         $"begin " +
                         $" insert into machine(IMEI1, IMEI2, MachineTypeId) select @IMEI1, @IMEI2, 1 " +
-                        $"end " +
-                        $"update machine set IsConnected = @IsConnected where IMEI1 = @IMEI1 " +
+                        $"end " + 
+                        $"update machine set IsConnected = @IsConnected {machineVersion} where IMEI1 = @IMEI1 " +
                         $"insert into MachineConnectionHistory( MachineId, IsConnected) values " +
                         $" ((select id from  machine where IMEI1 = @IMEI1 ), @IsConnected)";
                     using (SqlCommand command = new SqlCommand(sql, connection))
@@ -2320,6 +2334,45 @@ namespace TCPServer
                         command.Parameters.AddWithValue("@IsConnected", IsConnected);
                         command.Parameters.AddWithValue("@IMEI1", IMEI1);
                         command.Parameters.AddWithValue("@IMEI2", IMEI2);
+                        if (!string.IsNullOrEmpty(machineVersion))
+                        {
+                            command.Parameters.AddWithValue("@Version", machineVersion);
+                        }
+                        connection.Open();
+                        await command.ExecuteNonQueryAsync();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _ = LogErrorAsync(ex, "1393 -- Method -- UpdateMachineState", IMEI1);
+                }
+                finally
+                {
+                    connection.Close();
+                }
+            }
+        }
+        internal static async Task UpdateMachineStateByVersion(string IMEI1, string IMEI2, bool IsConnected, string machineVersion = "")
+        {
+            using (SqlConnection connection = new SqlConnection(Util.ConnectionStrings))
+            {
+                try
+                {
+                    string sql = $"if not exists(select 1 from machine where IMEI1 = @IMEI1) " +
+                        $"begin " +
+                        $" insert into machine(IMEI1, IMEI2, MachineTypeId) select @IMEI1, @IMEI2, 1 " +
+                        $"end " +
+                        $"update machine set IsConnected = @IsConnected , Version = @Version where IMEI1 = @IMEI1 " +
+                        $"insert into MachineConnectionHistory( MachineId, IsConnected) values " +
+                        $" ((select id from  machine where IMEI1 = @IMEI1 ), @IsConnected)";
+                    using (SqlCommand command = new SqlCommand(sql, connection))
+                    {
+                        command.CommandTimeout = 100000;
+                        command.CommandType = CommandType.Text;
+                        command.Parameters.AddWithValue("@IsConnected", IsConnected);
+                        command.Parameters.AddWithValue("@IMEI1", IMEI1);
+                        command.Parameters.AddWithValue("@IMEI2", IMEI2);
+                        command.Parameters.AddWithValue("@Version", machineVersion);                        
                         connection.Open();
                         await command.ExecuteNonQueryAsync();
                     }
