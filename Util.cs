@@ -1310,30 +1310,34 @@ namespace TCPServer
                                                     //var timeFromGPGGA = gpsData[1];
                                                     var latFromGPGGA = gpsData[2];
                                                     var lonFromGPGGA = gpsData[4];
-                                                    var altitudeFRomGPGGA = gpsData[9];
+                                                    //if lat & lon Exist ,then calculate location and update machine status 990821
+                                                    if (!string.IsNullOrEmpty(latFromGPGGA) && !string.IsNullOrEmpty(lonFromGPGGA))
+                                                    {
+                                                        var altitudeFRomGPGGA = gpsData[9];
 
-                                                    //var timeFromGPRMC = gpsData[17];
-                                                    //var A_FromGPRMC = gpsData[18];
-                                                    //var latFromGPRMC = gpsData[19];
-                                                    //var lonFromGPRMC = gpsData[21];
-                                                    //var dateFromGPRMC = gpsData[25];
-                                                    var speedKnotFromGPVTG = gpsData[36];
-                                                    var speedKiloFromGPVTG = gpsData[38];
+                                                        //var timeFromGPRMC = gpsData[17];
+                                                        //var A_FromGPRMC = gpsData[18];
+                                                        //var latFromGPRMC = gpsData[19];
+                                                        //var lonFromGPRMC = gpsData[21];
+                                                        //var dateFromGPRMC = gpsData[25];
+                                                        var speedKnotFromGPVTG = gpsData[36];
+                                                        var speedKiloFromGPVTG = gpsData[38];
 
-                                                    lat = int.Parse(latFromGPGGA.Substring(0, 2)) +
-                                                        double.Parse(latFromGPGGA.Substring(2, 6)) / 60;
-                                                    lon = int.Parse(lonFromGPGGA.Substring(0, 3)) +
-                                                        double.Parse(lonFromGPGGA.Substring(3, 6)) / 60;
-                                                    double.TryParse(speedKiloFromGPVTG, out double Speed);
-                                                    double.TryParse(speedKnotFromGPVTG, out double Speed2);
-                                                    double.TryParse(altitudeFRomGPGGA, out double Altitude);
+                                                        lat = int.Parse(latFromGPGGA.Substring(0, 2)) +
+                                                            double.Parse(latFromGPGGA.Substring(2, 6)) / 60;
+                                                        lon = int.Parse(lonFromGPGGA.Substring(0, 3)) +
+                                                            double.Parse(lonFromGPGGA.Substring(3, 6)) / 60;
+                                                        double.TryParse(speedKiloFromGPVTG, out double Speed);
+                                                        double.TryParse(speedKnotFromGPVTG, out double Speed2);
+                                                        double.TryParse(altitudeFRomGPGGA, out double Altitude);
 
-                                                    inseretStatment = inseretStatment + " Lat , Long, ";
-                                                    valueStatmenet = valueStatmenet + lat + " , " + lon.ToString() + " , ";
+                                                        inseretStatment = inseretStatment + " Lat , Long, ";
+                                                        valueStatmenet = valueStatmenet + lat + " , " + lon.ToString() + " , ";
 
-                                                    DateTime.TryParse(paramArray[3].Substring(5, paramArray[3].Length - 5), out DateTime fromDevice);
-                                                    Util.UpdateMachineLocation(state.IMEI1, state.IMEI2, lat.ToString(), lon.ToString(),
-                                                        Speed, Speed2, Altitude, fromDevice).ConfigureAwait(false);
+                                                        DateTime.TryParse(paramArray[3].Substring(5, paramArray[3].Length - 5), out DateTime fromDevice);
+                                                        Util.UpdateMachineLocation(state.IMEI1, state.IMEI2, lat.ToString(), lon.ToString(),
+                                                            Speed, Speed2, Altitude, fromDevice).ConfigureAwait(false);
+                                                    }
                                                 }
                                             }
                                         }
