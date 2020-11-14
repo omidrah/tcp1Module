@@ -877,14 +877,18 @@ namespace TCPServer
                                 }
                                 try
                                 {
-                                    //update IsDone in  machineVersion Table ==>  mean...Update Device Finished 
-                                    string sql = $"Update MachineVersion Set IsDone = 1 , CompleteDate = @CompleteDate " +
+                                    //update IsDone in  machineVersion Table ==>  mean...Update Process Finished but param2 show result
+                                    //
+                                    string sql = $"Update MachineVersion Set IsDone = 1 , CompleteDate = @CompleteDate , UpdateResult=@UpdateResult " +
                                                 $" where Id = @VersionId";
+                                    var UpdateResult = paramArray[2].Split(':')[1] ?? string.Empty;
+
                                     using (SqlCommand command = new SqlCommand(sql, connection))
                                     {
                                         command.CommandTimeout = 100000;
                                         command.CommandType = CommandType.Text;
                                         command.Parameters.AddWithValue("@VersionId", VID);
+                                        command.Parameters.AddWithValue("@UpdateResult", UpdateResult);
                                         command.Parameters.AddWithValue("@CompleteDate", DateTime.Now);
                                         connection.Open();
                                         await command.ExecuteScalarAsync().ConfigureAwait(false);
@@ -905,13 +909,13 @@ namespace TCPServer
                                             if (!string.IsNullOrEmpty(fileDownload) && machineId > 0) //Update Version In Machine 
                                             {
                                                 var ar = fileDownload.Split('/');
-                                                var versionNum = ar[ar[0].Length - 1]; //FileName format : nameFile-VersionNumb.zip  => config-1.0.0.zip                           
+                                                var versionNum = ar[ar.Length - 1].Split('_')[1].Split('z')[0]; //FileName format : nameFile_VersionNumb.zip  => config_1.0.0.zip                           
 
                                                 command.CommandText = "Update Machine set Version=@NewVersion  where Id=@machineId";
                                                 command.Parameters.Clear();
                                                 try
                                                 {
-                                                    command.Parameters.AddWithValue("@NewVersion", versionNum.Split('-')[1].Substring(0, 5));//Second part of FileName is Version
+                                                    command.Parameters.AddWithValue("@NewVersion", versionNum);
                                                     command.Parameters.AddWithValue("@machineId", machineId);
                                                     await command.ExecuteScalarAsync().ConfigureAwait(false);
                                                     if (AsynchronousSocketListener.Imei1Log == "All" || stateobject.IMEI1 == AsynchronousSocketListener.Imei1Log)
@@ -1127,7 +1131,7 @@ namespace TCPServer
             {
                 try
                 {
-                    string sql = $"SELECT FileDownloadAddress   from MachineVersion where Id = @Id ";
+                    string sql = $"SELECT FileDownloadAddress from MachineVersion where Id = @Id ";
                     using (SqlCommand command = new SqlCommand(sql, connection))
                     {
                         command.CommandTimeout = 100000;
@@ -2043,7 +2047,7 @@ namespace TCPServer
                 {
                     string sql = $"SELECT top 1 r.* " +
                         $" from MachineVersion r " +
-                        $" where r.IMEI1 = @IMEI1 and r.IsDone = 0" +
+                        $" where r.IMEI1 = @IMEI1 and r.IsDone = 0 " +
                         $" order by CreateDate Desc " +
                         $" for json path";
                     using (SqlCommand command = new SqlCommand(sql, connection))
@@ -2162,9 +2166,9 @@ namespace TCPServer
                                             var curUPDRec = JArray.Parse(ExsitUPD);
                                             var UPDCreateDate = Convert.ToDateTime(curUPDRec[0]["CreateDate"]);
                                             // سرور به کلاینت گذشته باشد، اطلاعات دوباره ارسال میشود UPDو دو دقیقه  هم از زمان ارسال پیام 
-                                            TimeSpan diffGT2 = DateTime.Now - UPDCreateDate;
-                                            if (diffGT2.Seconds > 60)
-                                            {
+                                           // TimeSpan diffGT2 = DateTime.Now - UPDCreateDate;
+                                           // if (diffGT2.Seconds > 60)
+                                           // {
                                                 try
                                                 {
                                                     int detail_UpdId; int.TryParse(curUPDRec[0]["Id"].ToString(), out detail_UpdId);
@@ -2198,7 +2202,7 @@ namespace TCPServer
                                                 {
                                                     _ = LogErrorAsync(ex, "1241 -- Method -- UpdateVersion", $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
                                                 }
-                                            }
+                                           // }
                                         }
                                     }
                                     catch (Exception ex)
@@ -2420,7 +2424,9 @@ namespace TCPServer
                         }
                         else
                         {
-                            command.Parameters.AddWithValue("@fromDevice", DBNull.Value);
+                            //null for DateTime has err:SqlDateTime overflow. Must be between 1/1/1753 12:00:00 AM and 12/31/9999 11:59:59 PM.
+                            // command.Parameters.AddWithValue("@fromDevice", DBNull.Value);
+                            command.Parameters.AddWithValue("@fromDevice", DateTime.Now);
                         }
                         if (CpuTemprature != null)
                         {
