@@ -1,22 +1,23 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using TCPServer.Models;
 
 namespace TCPServer
 {
     class Program
-    {
-        public static IConfigurationRoot config;
+    {        
         static async Task Main(string[] args)
         {
             var builder = new ConfigurationBuilder()
                .SetBasePath(Directory.GetCurrentDirectory())
-               .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);           
-            IConfigurationRoot configuration = builder.Build();            
-            config = configuration;
-            Util.ConnectionStrings = configuration.GetConnectionString("DefaultConnection");
+               .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+            setSetting(builder.Build());            
+            var services = new ServiceCollection().AddLogging().BuildServiceProvider();
             ServerConfig();
+            
             // Task.Run(async () => ServerConfig());
             //WebHost.CreateDefaultBuilder()
             //        .SuppressStatusMessages(true) //disable status message                  
@@ -52,9 +53,24 @@ namespace TCPServer
             //        }).Build().Run();
         }
 
-        private static void ServerConfig()
+        private static void setSetting(IConfigurationRoot configuration)
         {
-            string ip = "127.0.0.1";  string port = "6070";
+            /*General Timer */
+            TcpSettings.TGenral= double.Parse(configuration.GetSection("Timer:TGenral").Value) * 6000;
+            /*set Log Imei1*/
+            TcpSettings.Imei1Log = string.IsNullOrEmpty(configuration.GetSection("Logging:LogIMEI").Value) ? "All" : configuration.GetSection("Logging:LogIMEI").Value;
+            /*Client Timer ElpasedTime Read */
+            //client Timer, elapsed . microSecond
+            TcpSettings.ctSecond = double.Parse(configuration.GetSection("Timer:TClient").Value) * 1000;
+            //layer3Host Address
+            TcpSettings.l3Host = string.IsNullOrEmpty(configuration.GetSection("Config:l3MessageFolder").Value) ?
+                                            string.Empty :
+                                          configuration.GetSection("Config:l3MessageFolder").Value;
+            TcpSettings.ConnectionString = configuration.GetConnectionString("DefaultConnection");
+        }
+
+        private static void ServerConfig()
+        {            
             Menu();
             while (true)
             {
@@ -64,51 +80,51 @@ namespace TCPServer
                     case ConsoleKey.S:
                         Console.ForegroundColor = ConsoleColor.Green;
                         Console.WriteLine("Please Enter Server Ip:");
-                        ip = Console.ReadLine();
+                        TcpSettings.ip = Console.ReadLine();
                         Console.Clear();
                         Menu();
                         break;
                     case ConsoleKey.P:
                         Console.ForegroundColor = ConsoleColor.Green;
                         Console.WriteLine("Please Enter Server Port:");
-                        port = Console.ReadLine();
+                        TcpSettings.port = Console.ReadLine();
                         Console.Clear();
                         Menu();
                         break;
                     case ConsoleKey.G:
                         Console.ForegroundColor = ConsoleColor.Green;
                         Console.WriteLine("Please Enter General Timer(second):");
-                        port = Console.ReadLine();
+                        var p = Console.ReadLine();
                         Console.Clear();
-                        config.GetSection("Timer:TGenral").Value = port;
+                        TcpSettings.TGenral =Convert.ToDouble(p);                        
                         Menu();
                         break;
                     case ConsoleKey.C:
                         Console.ForegroundColor = ConsoleColor.Green;
                         Console.WriteLine("Please Enter Client Timer(second):");
-                        port = Console.ReadLine();
+                        var p1 = Console.ReadLine();
                         Console.Clear();
-                        config.GetSection("Timer:TClient").Value = port;
+                        TcpSettings.ctSecond = Convert.ToDouble(p1);
                         Menu();
                         break;
                     case ConsoleKey.D: //localhost
-                        ip = "127.0.0.1";
-                        port = "6070";
-                        Confirm(ip, port);
+                        TcpSettings.ip = "127.0.0.1";
+                        TcpSettings.port = "6070";
+                        Confirm(TcpSettings.ip, TcpSettings.port);
                         break;
-                    case ConsoleKey.M: //localhost
-                        ip = "185.192.112.74";
-                        port = "6070";
-                        Confirm(ip, port);
+                    case ConsoleKey.M: //KKOM
+                        TcpSettings.ip = "185.192.112.74";
+                        TcpSettings.port = "6070";
+                        Confirm(TcpSettings.ip, TcpSettings.port);
                         break;
                     case ConsoleKey.A: 
-                        Confirm(ip, port);
+                        Confirm(TcpSettings.ip, TcpSettings.port);
                         break;
                     case ConsoleKey.I:
                         Console.Clear();
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine($"Server is {ip} \n");
-                        Console.WriteLine($"Port is {port} \n");
+                        Console.WriteLine($"Server is {TcpSettings.ip} \n");
+                        Console.WriteLine($"Port is {TcpSettings.port} \n");
                         Console.ForegroundColor = ConsoleColor.White;
                         Menu();
                         break;
@@ -208,7 +224,7 @@ namespace TCPServer
                 Console.ForegroundColor = ConsoleColor.Green;
                 var t = Task.Run(() =>
                 {
-                    AsynchronousSocketListener.StartListening(ip, Convert.ToInt32(port), config);
+                    AsynchronousSocketListener.StartListening(ip, Convert.ToInt32(port));
                 });               
             }
             else

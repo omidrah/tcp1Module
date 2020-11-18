@@ -15,11 +15,9 @@ using TCPServer.Models;
 
 namespace TCPServer
 {
+	
     public static class Util
     {
-        public static string serverPath { get; set; }
-        public static string ConnectionStrings { get; set; }
-        public readonly static CultureInfo EnglishCulture = new CultureInfo("en-US");
         internal static async Task ProcessProbeRecievedContent(StateObject state, string content)
         {
             try
@@ -96,7 +94,7 @@ namespace TCPServer
         }
         private static async Task ProcessDeviceWantSync(StateObject state, string[] paramArray)
         {
-            if (AsynchronousSocketListener.Imei1Log == "All" ||  state.IMEI1 == AsynchronousSocketListener.Imei1Log )
+            if (TcpSettings.Imei1Log == "All" ||  state.IMEI1 == TcpSettings.Imei1Log)
             {
                 Console.ForegroundColor = ConsoleColor.DarkGray;
                 Console.WriteLine($"*************************************");
@@ -122,7 +120,7 @@ namespace TCPServer
                 _ = LogErrorAsync(new Exception("update ussd"), string.Join("@",paramArray), $"Update Ussd -- 108 ").ConfigureAwait(false);
                 int.TryParse(paramArray[1].Split(":")[1],out int UsId);
                 DateTime.TryParse(paramArray[3].Substring(5, paramArray[3].Length - 5), out DateTime Time);
-                using (SqlConnection connection = new SqlConnection(Util.ConnectionStrings))
+                using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
                 {
                     connection.Open();
                     try
@@ -164,8 +162,8 @@ namespace TCPServer
                 var UsdOrSms = paramArray[0];
                 if (UsdOrSms == "SMS")
                 {
-                    LogErrorAsync(new Exception("ProcessSMS"), String.Join("", paramArray), "ProcessSMS").ConfigureAwait(false);
-                    ProcessSMS(state, paramArray);
+                    _=LogErrorAsync(new Exception("ProcessSMS"), String.Join("", paramArray), "ProcessSMS").ConfigureAwait(false);
+                    _=ProcessSMS(state, paramArray);
                 }
                 else //usdorsms="USD"
                 {
@@ -191,8 +189,8 @@ namespace TCPServer
         internal static async Task TerminateTest(StateObject state)
         {
             string TerminateTest = "";
-            string VIKey = "BgrUEy5IbpJSnhmqI2IhKw==";
-            using (SqlConnection connection = new SqlConnection(Util.ConnectionStrings))
+            
+            using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
                 try
                 {
@@ -218,7 +216,7 @@ namespace TCPServer
             }
             if (TerminateTest != null)
             {
-                if (AsynchronousSocketListener.Imei1Log =="All" || state.IMEI1 == AsynchronousSocketListener.Imei1Log)
+                if (TcpSettings.Imei1Log == "All" || state.IMEI1 == TcpSettings.Imei1Log)
                 {
                     Console.ForegroundColor = ConsoleColor.DarkGray;
                     Console.WriteLine($"*************************************");
@@ -230,8 +228,8 @@ namespace TCPServer
                 {
                     var content = ("TRM#" + item.ToString().Replace("}", "").Replace(",", "#").
                         Replace("{", "")).Replace(" ", "").Replace("\r", "").Replace("\n", "").ToString().
-                        Encrypt("sample_shared_secret", VIKey);                    
-                    AsynchronousSocketListener.Send(state.workSocket, VIKey + " ," + content);
+                        Encrypt("sample_shared_secret");                    
+                    AsynchronousSocketListener.Send(state.workSocket,TcpSettings.VIKey + " ," + content);
                    // LogErrorAsync(new Exception("TRMSEND"), String.Join("", item), content).ConfigureAwait(false);
                 }
             }
@@ -261,7 +259,7 @@ namespace TCPServer
         }
         private static async Task ProcessSYEDevice(StateObject state, string[] paramArray)
         {
-            if (AsynchronousSocketListener.Imei1Log == "All" || state.IMEI1 == AsynchronousSocketListener.Imei1Log)
+            if (TcpSettings.Imei1Log == "All" || state.IMEI1 == TcpSettings.Imei1Log)
             {
                 Console.ForegroundColor = ConsoleColor.DarkGray;
                 Console.WriteLine($"*************************************");
@@ -297,7 +295,7 @@ namespace TCPServer
         }
         private async static Task SyncDevice(StateObject state)
         {
-            if (AsynchronousSocketListener.Imei1Log=="All" || state.IMEI1 ==AsynchronousSocketListener.Imei1Log )
+            if (TcpSettings.Imei1Log=="All" || state.IMEI1 ==TcpSettings.Imei1Log )
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.WriteLine($"*************************************");
@@ -317,7 +315,7 @@ namespace TCPServer
         private async static Task<bool> UpdateMasterDetailSync(StateObject state, int syncMasterId, string step, bool? iscompeleted = null)
         {
             bool result = false;
-            using (SqlConnection connection = new SqlConnection(Util.ConnectionStrings))
+            using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
                 connection.Open();
                 var tx = connection.BeginTransaction();
@@ -357,7 +355,7 @@ namespace TCPServer
                             }
                             await command.ExecuteScalarAsync().ConfigureAwait(false);
                             tx.Commit();
-                            if (AsynchronousSocketListener.Imei1Log == "All" || state.IMEI1 == AsynchronousSocketListener.Imei1Log)
+                            if (TcpSettings.Imei1Log == "All" || state.IMEI1 == TcpSettings.Imei1Log)
                             {
                                 Console.ForegroundColor = ConsoleColor.Yellow;
                                 Console.WriteLine($"*************************************");
@@ -405,7 +403,7 @@ namespace TCPServer
         /// <returns></returns>       
         private async static Task AddSync(StateObject state)
         {
-            using (SqlConnection connection = new SqlConnection(Util.ConnectionStrings))
+            using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
                 connection.Open();
                 var tx = connection.BeginTransaction();
@@ -449,12 +447,11 @@ namespace TCPServer
                                 command3.Parameters.AddWithValue("@Command", "SYN");
                                 command3.Parameters.AddWithValue("@status", 1);
                                 await command3.ExecuteScalarAsync().ConfigureAwait(false);
-                                tx.Commit();
-                                string VIKey = "BgrUEy5IbpJSnhmqI2IhKw==";                                
+                                tx.Commit();                                                             
                                 var msg = ($"SYN#\"SId\":{syncMasterId}#");
-                                var content = msg.Encrypt("sample_shared_secret", VIKey);
-                                AsynchronousSocketListener.Send(state.workSocket, VIKey + " ," + content);
-                                if (AsynchronousSocketListener.Imei1Log == "All" || state.IMEI1 == AsynchronousSocketListener.Imei1Log)
+                                var content = msg.Encrypt("sample_shared_secret");
+                                AsynchronousSocketListener.Send(state.workSocket,TcpSettings.VIKey + " ," + content);
+                                if (TcpSettings.Imei1Log == "All" || state.IMEI1 == TcpSettings.Imei1Log)
                                 {
                                     Console.ForegroundColor = ConsoleColor.Yellow;
                                     Console.WriteLine($"*************************************");
@@ -488,7 +485,7 @@ namespace TCPServer
                                             DateTime DateFromDevice, short status, int? ParentId)
         {
             decimal res = 0;
-            using (SqlConnection connection = new SqlConnection(Util.ConnectionStrings))
+            using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
                 connection.Open();
                 try
@@ -536,7 +533,7 @@ namespace TCPServer
                                               DateTime DateFromDevice)
         {
 
-            using (SqlConnection connection = new SqlConnection(Util.ConnectionStrings))
+            using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
                 connection.Open();
                 try
@@ -582,7 +579,7 @@ namespace TCPServer
         }
         public async static Task SendUSS(StateObject state, int machineId, string ime1, string ime2)
         {
-            using (SqlConnection connection = new SqlConnection(Util.ConnectionStrings))
+            using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
                 connection.Open();
                 try
@@ -618,10 +615,10 @@ namespace TCPServer
                     }
                     if (!string.IsNullOrEmpty(msg))// if uss exist
                     {
-                        string VIKey = "BgrUEy5IbpJSnhmqI2IhKw==";
-                        var content = msg.Encrypt("sample_shared_secret", VIKey);                        
-                        AsynchronousSocketListener.Send(state.workSocket, VIKey + " ," + content);
-                        if (AsynchronousSocketListener.Imei1Log == "All" || state.IMEI1 == AsynchronousSocketListener.Imei1Log)
+                        
+                        var content = msg.Encrypt("sample_shared_secret");                        
+                        AsynchronousSocketListener.Send(state.workSocket,TcpSettings.VIKey + " ," + content);
+                        if (TcpSettings.Imei1Log == "All" || state.IMEI1 == TcpSettings.Imei1Log)
                         {
                             Console.ForegroundColor = ConsoleColor.Yellow;
                             Console.WriteLine($"*************************************");
@@ -669,7 +666,7 @@ namespace TCPServer
         }
         public async static Task CheckUssdByIMEI(StateObject state)
         {
-            using (SqlConnection connection = new SqlConnection(Util.ConnectionStrings))
+            using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
                 connection.Open();
                 try
@@ -715,7 +712,7 @@ namespace TCPServer
                 if (!string.IsNullOrEmpty(paramArray[2].Split(':')[1]))
                 {
                     int.TryParse(paramArray[2].Split(':')[1], out int definedTestMachineId);
-                    if (AsynchronousSocketListener.Imei1Log == "All" || state.IMEI1 == AsynchronousSocketListener.Imei1Log)
+                    if (TcpSettings.Imei1Log == "All" || state.IMEI1 == TcpSettings.Imei1Log)
                     {
                         Console.ForegroundColor = ConsoleColor.Red;
                         Console.WriteLine($"*************************************");
@@ -736,7 +733,7 @@ namespace TCPServer
         /// <returns></returns>
         private async static Task StopSendTest(int definedTestMachineId)
         {
-            using (SqlConnection connection = new SqlConnection(Util.ConnectionStrings))
+            using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
                 try
                 {
@@ -774,7 +771,7 @@ namespace TCPServer
                 double lat = 0, lon = 0;
                 if (!string.IsNullOrEmpty(paramArray[5]) && paramArray[5].ToLower() != "nan")
                 {
-                    if (AsynchronousSocketListener.Imei1Log == "All" || state.IMEI1 == AsynchronousSocketListener.Imei1Log)
+                    if (TcpSettings.Imei1Log == "All" || state.IMEI1 == TcpSettings.Imei1Log)
                     {
                         Console.ForegroundColor = ConsoleColor.DarkGray;
                         Console.WriteLine($"*************************************");
@@ -790,29 +787,32 @@ namespace TCPServer
                         //var timeFromGPGGA = gpsData[1];
                         var latFromGPGGA = gpsData[2];
                         var lonFromGPGGA = gpsData[4];
-                        var altitudeFRomGPGGA = gpsData[9];
-
-                        //var timeFromGPRMC = gpsData[17];
-                        //var A_FromGPRMC = gpsData[18];
-                        //var latFromGPRMC = gpsData[19];
-                        //var lonFromGPRMC = gpsData[21];
-                        //var dateFromGPRMC = gpsData[25];
-                        var speedKnotFromGPVTG = gpsData[36];
-                        var speedKiloFromGPVTG = gpsData[38];
-
-                        lat = int.Parse(latFromGPGGA.Substring(0, 2)) + 
-                            double.Parse(latFromGPGGA.Substring(2, 6)) / 60;
-                        lon = int.Parse(lonFromGPGGA.Substring(0, 3)) + 
-                            double.Parse(lonFromGPGGA.Substring(3, 6)) / 60;
-                        double.TryParse(speedKiloFromGPVTG, out double Speed);
-                        double.TryParse(speedKnotFromGPVTG, out double Speed2);
-                        double.TryParse(altitudeFRomGPGGA, out double Altitude);
-                        float.TryParse(paramArray[4].Split(':')[1], out float cpuTemp);
-                        DateTime.TryParse(paramArray[3].Substring(5, paramArray[3].Length - 5), out DateTime fromDevice);
-                        if (state.IMEI1 != null && state.IsConnected)
+                        if (!string.IsNullOrEmpty(latFromGPGGA) && !string.IsNullOrEmpty(lonFromGPGGA))
                         {
-                            var imei2 = paramArray[2].Split(':')[1];
-                            await UpdateMachineLocation(state.IMEI1, imei2, lat.ToString(), lon.ToString(), Speed,Speed2,Altitude, fromDevice, cpuTemp).ConfigureAwait(false);
+                            var altitudeFRomGPGGA = gpsData[9];
+
+                            //var timeFromGPRMC = gpsData[17];
+                            //var A_FromGPRMC = gpsData[18];
+                            //var latFromGPRMC = gpsData[19];
+                            //var lonFromGPRMC = gpsData[21];
+                            //var dateFromGPRMC = gpsData[25];
+                            var speedKnotFromGPVTG = gpsData[36];
+                            var speedKiloFromGPVTG = gpsData[38];
+
+                            lat = int.Parse(latFromGPGGA.Substring(0, 2)) +
+                                double.Parse(latFromGPGGA.Substring(2, 6)) / 60;
+                            lon = int.Parse(lonFromGPGGA.Substring(0, 3)) +
+                                double.Parse(lonFromGPGGA.Substring(3, 6)) / 60;
+                            double.TryParse(speedKiloFromGPVTG, out double Speed);
+                            double.TryParse(speedKnotFromGPVTG, out double Speed2);
+                            double.TryParse(altitudeFRomGPGGA, out double Altitude);
+                            float.TryParse(paramArray[4].Split(':')[1], out float cpuTemp);
+                            DateTime.TryParse(paramArray[3].Substring(5, paramArray[3].Length - 5), out DateTime fromDevice);
+                            if (state.IMEI1 != null && state.IsConnected)
+                            {
+                                var imei2 = paramArray[2].Split(':')[1];
+                                await UpdateMachineLocation(state.IMEI1, imei2, lat.ToString(), lon.ToString(), Speed, Speed2, Altitude, fromDevice, cpuTemp).ConfigureAwait(false);
+                            }
                         }
                     }
                 }
@@ -840,7 +840,7 @@ namespace TCPServer
                     {
                         if (AsynchronousSocketListener.DeviceList.Exists(x => x.IMEI1 == stateobject.IMEI1))
                         {
-                            using (SqlConnection connection = new SqlConnection(Util.ConnectionStrings))
+                            using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
                             {
                                 try
                                 {
@@ -857,7 +857,7 @@ namespace TCPServer
                                         command.Parameters.AddWithValue("@Reciever", "Server");
                                         connection.Open();
                                         await command.ExecuteScalarAsync().ConfigureAwait(false);
-                                        if (AsynchronousSocketListener.Imei1Log == "All" || stateobject.IMEI1 == AsynchronousSocketListener.Imei1Log)
+                                        if (TcpSettings.Imei1Log == "All" || stateobject.IMEI1 == TcpSettings.Imei1Log)
                                         {
                                             Console.ForegroundColor = ConsoleColor.Yellow;
                                             Console.WriteLine($"*************************************");
@@ -878,11 +878,10 @@ namespace TCPServer
                                 try
                                 {
                                     //update IsDone in  machineVersion Table ==>  mean...Update Process Finished but param2 show result
-                                    //
+                                    //Device send rpl Means (1) update successfully (2) get fse from server and 3 times do upr .
                                     string sql = $"Update MachineVersion Set IsDone = 1 , CompleteDate = @CompleteDate , UpdateResult=@UpdateResult " +
                                                 $" where Id = @VersionId";
                                     var UpdateResult = paramArray[2].Split(':')[1] ?? string.Empty;
-
                                     using (SqlCommand command = new SqlCommand(sql, connection))
                                     {
                                         command.CommandTimeout = 100000;
@@ -891,52 +890,7 @@ namespace TCPServer
                                         command.Parameters.AddWithValue("@UpdateResult", UpdateResult);
                                         command.Parameters.AddWithValue("@CompleteDate", DateTime.Now);
                                         connection.Open();
-                                        await command.ExecuteScalarAsync().ConfigureAwait(false);
-                                        try
-                                        {
-                                            int machineId = 0;
-                                            string fileDownload = string.Empty;
-                                            using (SqlCommand cc = new SqlCommand(sql, connection))
-                                            {
-                                                cc.CommandText = $"Select * from MachineVersion where Id={VID}";
-                                                using var reader = await cc.ExecuteReaderAsync().ConfigureAwait(false);
-                                                if (await reader.ReadAsync())
-                                                {
-                                                    fileDownload = reader["FileDownloadAddress"].ToString();
-                                                    int.TryParse(reader["MachineId"].ToString(), out machineId);
-                                                }
-                                            }
-                                            if (!string.IsNullOrEmpty(fileDownload) && machineId > 0) //Update Version In Machine 
-                                            {
-                                                var ar = fileDownload.Split('/');
-                                                var versionNum = ar[ar.Length - 1].Split('_')[1].Split('z')[0]; //FileName format : nameFile_VersionNumb.zip  => config_1.0.0.zip                           
-
-                                                command.CommandText = "Update Machine set Version=@NewVersion  where Id=@machineId";
-                                                command.Parameters.Clear();
-                                                try
-                                                {
-                                                    command.Parameters.AddWithValue("@NewVersion", versionNum);
-                                                    command.Parameters.AddWithValue("@machineId", machineId);
-                                                    await command.ExecuteScalarAsync().ConfigureAwait(false);
-                                                    if (AsynchronousSocketListener.Imei1Log == "All" || stateobject.IMEI1 == AsynchronousSocketListener.Imei1Log)
-                                                    {
-                                                        Console.ForegroundColor = ConsoleColor.Yellow;
-                                                        Console.WriteLine($"*************************************");
-                                                        Console.WriteLine($"Device by IMEI1={stateobject.IMEI1} IP={stateobject.IP} @ {DateTime.Now.ToString("yyyy-M-d HH-mm-ss", System.Globalization.CultureInfo.InvariantCulture)} Updated Compelete.");
-                                                        Console.WriteLine($"*************************************");
-                                                        Console.ForegroundColor = ConsoleColor.Green;
-                                                    }
-                                                }
-                                                catch (Exception ex)
-                                                {
-                                                    _ = LogErrorAsync(ex, "153 --Method-- ProcessRPLRecievedContent", $"IMEI1={stateobject.IMEI1} Ip={stateobject.IP}").ConfigureAwait(false);
-                                                }
-                                            }
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            _ = LogErrorAsync(ex, "159 --Method-- ProcessRPLRecievedContent", $"IMEI1={stateobject.IMEI1} Ip={stateobject.IP}").ConfigureAwait(false);
-                                        }
+                                        await command.ExecuteScalarAsync().ConfigureAwait(false);                                        
                                     }
                                 }
                                 catch (Exception ex)
@@ -979,9 +933,9 @@ namespace TCPServer
                     {
                         if (AsynchronousSocketListener.DeviceList.Exists(x => x.IMEI1 == stateobject.IMEI1))
                         {
-                            using (SqlConnection connection = new SqlConnection(Util.ConnectionStrings))
+                            using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
                             {
-                                string VIKey = "BgrUEy5IbpJSnhmqI2IhKw==";
+                                
                                 try
                                 {
                                     string sql = $"INSERT MachineVersionDetail (VersionId,State,CreateDate,Sender,Reciever) VALUES" +
@@ -997,7 +951,7 @@ namespace TCPServer
                                         command.Parameters.AddWithValue("@Reciever", "Server");
                                         connection.Open();
                                         await command.ExecuteScalarAsync().ConfigureAwait(false);
-                                        if (AsynchronousSocketListener.Imei1Log == "All" || stateobject.IMEI1 == AsynchronousSocketListener.Imei1Log)
+                                        if (TcpSettings.Imei1Log == "All" || stateobject.IMEI1 == TcpSettings.Imei1Log)
                                         {
                                             Console.ForegroundColor = ConsoleColor.Yellow;
                                             Console.WriteLine($"*************************************");
@@ -1020,7 +974,7 @@ namespace TCPServer
                                 {
                                     //Send msg To Device for OK fileDownload
 
-                                    var content = ("RPL#\"VID\":" + VID + "#").Encrypt("sample_shared_secret", VIKey);
+                                    var content = ("RPL#\"VID\":" + VID + "#").Encrypt("sample_shared_secret");
                                     try
                                     {
                                         var sql = $"INSERT MachineVersionDetail (VersionId,State,CreateDate,Sender,Reciever) VALUES" +
@@ -1038,8 +992,8 @@ namespace TCPServer
                                             //if (AsynchronousSocketListener.SocketConnected(stateobject))
                                             //{
                                             await command.ExecuteScalarAsync().ConfigureAwait(false);
-                                            AsynchronousSocketListener.Send(stateobject.workSocket, VIKey + " ," + content);
-                                            if (AsynchronousSocketListener.Imei1Log == "All" || stateobject.IMEI1 == AsynchronousSocketListener.Imei1Log)
+                                            AsynchronousSocketListener.Send(stateobject.workSocket,TcpSettings.VIKey + " ," + content);
+                                            if (TcpSettings.Imei1Log == "All" || stateobject.IMEI1 == TcpSettings.Imei1Log)
                                             {
                                                 Console.ForegroundColor = ConsoleColor.Yellow;
                                                 Console.WriteLine($"*************************************");
@@ -1061,7 +1015,7 @@ namespace TCPServer
                                 }
                                 else //Download file Nok
                                 {
-                                    var content = ("FSE#\"VID\":" + VID + "#").Encrypt("sample_shared_secret", VIKey);
+                                    var content = ("FSE#\"VID\":" + VID + "#").Encrypt("sample_shared_secret");
                                     try
                                     {
                                         var sql = $"INSERT MachineVersionDetail (VersionId,State,CreateDate,Sender,Reciever) VALUES" +
@@ -1079,8 +1033,8 @@ namespace TCPServer
                                             //if (AsynchronousSocketListener.SocketConnected(stateobject))
                                             //{
                                             await command.ExecuteScalarAsync().ConfigureAwait(false);
-                                            AsynchronousSocketListener.Send(stateobject.workSocket, VIKey + " ," + content);
-                                            if (AsynchronousSocketListener.Imei1Log == "All"  || stateobject.IMEI1 == AsynchronousSocketListener.Imei1Log)
+                                            AsynchronousSocketListener.Send(stateobject.workSocket,TcpSettings.VIKey + " ," + content);
+                                            if (TcpSettings.Imei1Log == "All"  || stateobject.IMEI1 == TcpSettings.Imei1Log)
                                             {
                                                 Console.ForegroundColor = ConsoleColor.Yellow;
                                                 Console.WriteLine($"*************************************");
@@ -1124,35 +1078,32 @@ namespace TCPServer
         /// <param name="FileSize">Filesize should be Convert to byte</param>
         /// <returns></returns>
         private static async Task<bool> CheckFileSizeAndFileName(int VersionId, string FileSize)
-        {
+        {            
             long.TryParse(FileSize.Split(':')[1], out long sFileDownload);
             bool result = false;
-            using (SqlConnection connection = new SqlConnection(Util.ConnectionStrings))
+            using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
+                int? SelectedVersion=0;
                 try
                 {
-                    string sql = $"SELECT FileDownloadAddress from MachineVersion where Id = @Id ";
+                    string sql = $"SELECT FileSize from MachineVersion where Id = @Id ";
+
                     using (SqlCommand command = new SqlCommand(sql, connection))
                     {
                         command.CommandTimeout = 100000;
                         command.CommandType = CommandType.Text;
                         command.Parameters.AddWithValue("@Id", VersionId);
                         connection.Open();
-                        var SelectedVersion = (string)await command.ExecuteScalarAsync().ConfigureAwait(false);
-                        byte[] fileByte = await DownloadFile(SelectedVersion);
-                        if (fileByte != null)
-                        {
-                            if (fileByte.Length == sFileDownload)
-                            {
-                                result = true;
-                                return true;
-                            }
-                        }
+                        SelectedVersion = (int?)await command.ExecuteScalarAsync().ConfigureAwait(false);                        
+                        if (SelectedVersion == sFileDownload)
+                        {                            
+                                result = true;                         
+                        }                        
                     }
                 }
                 catch (Exception ex)
                 {
-                    _ = LogErrorAsync(ex, "362 -Method-- CheckFileSizeAndFileName", FileSize.ToString());
+                    _ = LogErrorAsync(ex, "362 -Method-- CheckFileSize",$"FileSizeFromDevice>>{ FileSize} ,SizeFromDb>>{ SelectedVersion}");
                 }
                 finally
                 {
@@ -1163,19 +1114,31 @@ namespace TCPServer
         }
         /// <summary>
         /// Download File from Server
+        /// 990827
+        /// tcpServer client.GetAsync($"http://{url}") has err:No connection could be made because the target machine actively refused it. 
+        /// therefore in tcp do not download file and check filesize. define new field FileSize in MachineVersion and when user upload file 
+        /// calculate size of uploaded file and save to FileSize field. tcp check this field with size sended Device
         /// </summary>
         /// <param name="url">Must be Full Url ,exp. Http://185.192.112.74/share/config.zip </param>
         /// <returns></returns>
         public static async Task<byte[]> DownloadFile(string url)
         {
-            using (var client = new HttpClient())
+            using (var client = new HttpClient(TcpSettings._handler) { Timeout= TimeSpan.MaxValue})
             {
+                //url recieve from db do not has Http/Https Protocol 
+                //url = string.Format("http{0}://{1}",, url); //supporting http and https 
 
-                using (var result = await client.GetAsync(url))
+                using var result = await client.GetAsync($"http://{url}");
+                if (result.IsSuccessStatusCode)
                 {
-                    if (result.IsSuccessStatusCode)
+                    return await result.Content.ReadAsByteArrayAsync();
+                }
+                else
+                {
+                    using var  result2 = await client.GetAsync($"https://{url}");
+                    if (result2.IsSuccessStatusCode)
                     {
-                        return await result.Content.ReadAsByteArrayAsync();
+                        return await result2.Content.ReadAsByteArrayAsync();
                     }
                 }
             }
@@ -1198,7 +1161,7 @@ namespace TCPServer
                     {
                         if (AsynchronousSocketListener.DeviceList.Exists(x => x.IMEI1 == stateobject.IMEI1))
                         {
-                            using (SqlConnection connection = new SqlConnection(Util.ConnectionStrings))
+                            using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
                             {
                                 try
                                 {
@@ -1215,7 +1178,7 @@ namespace TCPServer
                                         command.Parameters.AddWithValue("@Reciever", "Server");
                                         connection.Open();
                                         await command.ExecuteScalarAsync().ConfigureAwait(false);
-                                        if (AsynchronousSocketListener.Imei1Log == "All"  ||stateobject.IMEI1 == AsynchronousSocketListener.Imei1Log)
+                                        if (TcpSettings.Imei1Log == "All"  ||stateobject.IMEI1 == TcpSettings.Imei1Log)
                                         {
                                             Console.ForegroundColor = ConsoleColor.Yellow;
                                             Console.WriteLine($"*************************************");
@@ -1334,13 +1297,18 @@ namespace TCPServer
                                                         double.TryParse(speedKiloFromGPVTG, out double Speed);
                                                         double.TryParse(speedKnotFromGPVTG, out double Speed2);
                                                         double.TryParse(altitudeFRomGPGGA, out double Altitude);
-
                                                         inseretStatment = inseretStatment + " Lat , Long, ";
                                                         valueStatmenet = valueStatmenet + lat + " , " + lon.ToString() + " , ";
-
-                                                        DateTime.TryParse(paramArray[3].Substring(5, paramArray[3].Length - 5), out DateTime fromDevice);
-                                                        Util.UpdateMachineLocation(state.IMEI1, state.IMEI2, lat.ToString(), lon.ToString(),
-                                                            Speed, Speed2, Altitude, fromDevice).ConfigureAwait(false);
+                                                        if (DateTime.TryParse(paramArray[4].Substring(5, paramArray[4].Length - 5), out DateTime fromDevice))
+                                                        {
+                                                            _ = Util.UpdateMachineLocation(state.IMEI1, state.IMEI2, lat.ToString(), lon.ToString(),
+                                                            Speed, Speed2, Altitude, fromDevice, null).ConfigureAwait(false);
+                                                        }
+                                                        else
+                                                        {
+                                                            _ = Util.UpdateMachineLocation(state.IMEI1, state.IMEI2, lat.ToString(), lon.ToString(),
+                                                              Speed, Speed2, Altitude, null, null).ConfigureAwait(false);
+                                                        }
                                                     }
                                                 }
                                             }
@@ -1393,7 +1361,7 @@ namespace TCPServer
                                             }
 
                                             inseretStatment = inseretStatment + t[0] + " ,";
-                                            valueStatmenet = valueStatmenet + (int.TryParse(t[1].Replace("dBm", ""), out i) || t[1].Contains("0x") ? i.ToString() : "'" + t[1].Replace("dBm", "") + "'") + " ,";
+                                            valueStatmenet = valueStatmenet + (int.TryParse(t[1], out i) || t[1].Contains("0x") ? i.ToString() : t[1]=="NuNu" ? null: "'"+ t[1]  + "'") + " ,";
                                         }
 
                                     }
@@ -1404,7 +1372,6 @@ namespace TCPServer
                                         {
                                             inseretStatment = inseretStatment + t[0] + " , IsGroup, ";
                                             valueStatmenet = valueStatmenet + t[1].Replace("-", "") + " , 1 , ";
-
                                             //int.TryParse(t[1].Replace("-", ""), out TestId); ////omid added --981121
                                         }
                                         else
@@ -1442,7 +1409,7 @@ namespace TCPServer
         {
             try
             {
-                using (SqlConnection connection = new SqlConnection(Util.ConnectionStrings))
+                using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
                 {
                     string sql = testResult;
                     using (SqlCommand command = new SqlCommand(sql, connection))
@@ -1468,7 +1435,7 @@ namespace TCPServer
         private static async Task<string[]> _GetParameterbyTestReultId(int TestId)
         {
             var res = new string[7];
-            using (SqlConnection connection = new SqlConnection(Util.ConnectionStrings))
+            using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
                 try
                 {
@@ -1520,11 +1487,16 @@ namespace TCPServer
                     case "Id":
                         return new string[] { "TestId", param.Split(":")[1] };
                     case "BER":
-                        int ber; int.TryParse(param.Split(":")[1], out ber);
-                        if (ber >= 99) //مقدار غیر صحیح
-                            return new string[] { "BER", DBNull.Value.ToString() };
-                        else
-                            return new string[] { "BER", param.Split(":")[1] };
+                        int ber;
+                        if (int.TryParse(param.Split(":")[1], out ber))
+                        {
+                            if (ber >= 99) //مقدار غیر صحیح
+                                return new string[] { "BER", DBNull.Value.ToString() };
+                            else
+                                return new string[] { "BER", param.Split(":")[1] };
+                        }
+                        else //if BER=NAN, return null for int?
+                            return new string[] { "BER", "NuNu" };
                     case "PID":
                         return new string[] { "PID", param.Split(":")[1] };
                     case "MCC-MNC":
@@ -1549,11 +1521,15 @@ namespace TCPServer
                     //case "TechNo":
                     //    return new string[] { "TechNo", param.Split(":")[1] };
                     case "CID":
-                        int cidValue; int.TryParse(param.Split(":")[1], out cidValue);
-                        if (cidValue == -1) //مقدار غیر صحیح
-                            return new string[] { "CID", DBNull.Value.ToString() };
-                        else
-                            return new string[] { "CID", param.Split(":")[1] };
+                        int cidValue;
+                        if (int.TryParse(param.Split(":")[1], out cidValue))
+                        {
+                            if (cidValue == -1) //مقدار غیر صحیح
+                                return new string[] { "CID", "NuNu" };
+                            else
+                                return new string[] { "CID", cidValue.ToString() };
+                        }
+                        return new string[] { "CID", "NuNu" };
                     case "UARFCN":
                         return new string[] { "UARFCN", param.Split(":")[1] };
                     case "ARFCN":
@@ -1565,14 +1541,15 @@ namespace TCPServer
                         if ((param.Split(":")[1]).Contains("0x")) //اگر هگزاست تبدیل شود به دسیمال
                         {
                             resL = Convert.ToInt32(param.Split(":")[1], 16);
+                            return new string[] { "LAC", resL.ToString() };
                         }
                         else
                         {
-                            int.TryParse(param.Split(":")[1], out resL);
-                        }
-                        if (resL == 0) //مقدار غیر صحیح
-                            return new string[] { "LAC", DBNull.Value.ToString() };
-                        return new string[] { "LAC", resL.ToString() };
+                            if (int.TryParse(param.Split(":")[1], out resL)){
+                                return new string[] { "LAC", resL.ToString() };
+                            }
+                        }                        
+                        return new string[] { "LAC", "NuNu" };
                     case "ULBW":
                         return new string[] { "ULBW", param.Split(":")[1] };
                     case "BCCH":
@@ -1594,12 +1571,16 @@ namespace TCPServer
                         if ((param.Split(":")[1]).Contains("0x")) //اگر هگزاست تبدیل شود به دسیمال
                         {
                             res = Convert.ToInt32(param.Split(":")[1], 16);
+                            return new string[] { "TAC", res.ToString() };
                         }
                         else
                         {
-                            int.TryParse(param.Split(":")[1], out res);
+                            if(int.TryParse(param.Split(":")[1], out res))
+                            {
+                                return new string[] { "TAC", res.ToString() };
+                            }
                         }
-                        return new string[] { "TAC", res.ToString() };
+                        return new string[] { "TAC", "NuNu" };
                     case "RXLEV":
                         return new string[] { "RXLevel", param.Split(":")[1] };
                     case "ECIO":
@@ -1622,7 +1603,13 @@ namespace TCPServer
                     case "RXEQUAL":
                         return new string[] { "RXQual", param.Split(":")[1] };
                     case "SYSMODE":  //1:2G , 4:3G, 8:4G
-                        return new string[] { "SystemMode", param.Split(":")[1] };
+                        int sysmode;
+                        if (int.TryParse(param.Split(":")[1], out  sysmode))
+                        {
+                            return new string[] { "SystemMode", sysmode.ToString() };
+                        }
+                        else
+                            return new string[] { "SystemMode", "NuNu" };
                     case "PingResault":
                         return new string[] { "Ping", param.Split(":")[1] };
                     case "OPERATOR":
@@ -1637,38 +1624,51 @@ namespace TCPServer
                         return new string[] { "Layer3Messages", param.Split(":")[1] };
                     case "SPEED": //HTTP-FTP-Downlink/Uplink  --during action--addedby omid 990107
                         double spd = 0;
-                        double.TryParse(param.Split(":")[1], out spd);
-                        return new string[] { "Speed", spd.ToString() };
+                        if (double.TryParse(param.Split(":")[1], out spd))
+                        {
+                            return new string[] { "Speed", spd.ToString() };
+                        }
+                        return new string[] { "Speed", "NuNu" };
                     case "ElapsedTime": //HTTP-FTP-Downlink/Uplink --compelete Action --addedby omid 990107
                         double ept = 0;
-                        double.TryParse(param.Split(":")[1], out ept);
-                        return new string[] { "ElapsedTime", ept.ToString() };
+                        if (double.TryParse(param.Split(":")[1], out ept))
+                        {
+                            return new string[] { "ElapsedTime", ept.ToString() };
+                        }
+                        return new string[] { "ElapsedTime", "NuNu" };
                     case "AvrgSpeed": //HTTP-FTP-Downlink/Uplink  --compelete Action--addedby omid 990107
                         double asp = 0;
-                        double.TryParse(param.Split(":")[1], out asp);
-                        return new string[] { "AvrgSpeed", asp.ToString() };
+                        if (double.TryParse(param.Split(":")[1], out asp))
+                        {
+                            return new string[] { "AvrgSpeed", asp.ToString() };
+                        }
+                        return new string[] { "AvrgSpeed", "NuNu" };
                     case "FileName": //MosCall Params , Name Of wav file                     
                         String FileName = param.Split(":")[1];
                         var ar = FileName.Split('/');
-                        if (!string.IsNullOrEmpty(serverPath))
+                        if (!string.IsNullOrEmpty(TcpSettings.serverPath))
                         {
-                            return new string[] { "FileName", serverPath + "/" + ar[ar.Length - 1] };
+                            return new string[] { "FileName", TcpSettings.serverPath + "/" + ar[ar.Length - 1] };
                         }
                         return new string[] { "FileName", ar[ar.Length - 1] };
                     case "FileNameL3": //Layer3" ,Name Of txt file                        
                         var arr = param.Split(":")[1].Split('/');
-                        if (!string.IsNullOrEmpty(serverPath))
+                        if (!string.IsNullOrEmpty(TcpSettings.serverPath))
                         {
-                            return new string[] { "FileName", serverPath + "/" + arr[arr.Length - 1] };
+                            return new string[] { "FileName", TcpSettings.serverPath + "/" + arr[arr.Length - 1] };
                         }
                         return new string[] { "FileName", arr[arr.Length - 1] };
                     case "FileSize": //MosCall Params , Size Of wav file 
                     case "FileSizeL3"://layer3 , Size of txt file
-                        int FileSize = 0; int.TryParse(param.Split(":")[1], out FileSize);
-                        return new string[] { "FileSize", FileSize.ToString() };
+                        int FileSize = 0;
+                        if (int.TryParse(param.Split(":")[1], out FileSize))
+                        {
+                            return new string[] { "FileSize", FileSize.ToString() };
+                        }
+                        return new string[] { "FileSize", "NuNu" };
                     case "mosFile": //MosCall Params , Path oF File 
                     case "ServerL3"://layer3 params, Path of File
-                        serverPath = param.Split(":")[1];
+                        TcpSettings.serverPath = param.Split(":")[1];
                         break;
                     default:
                         break;
@@ -1679,7 +1679,7 @@ namespace TCPServer
         private static async Task UpdateMachineTestStatusToFinish(StateObject state, string testId)
         {
             AsynchronousSocketListener.SendedTest.Add(testId);
-            using (SqlConnection connection = new SqlConnection(Util.ConnectionStrings))
+            using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
                 if (!testId.Contains("-"))//is not group
                 {
@@ -1728,7 +1728,7 @@ namespace TCPServer
             try
             {
                 AsynchronousSocketListener.SendedTest.Add(testId);
-                using (SqlConnection connection = new SqlConnection(Util.ConnectionStrings))
+                using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
                 {
                     if (!testId.Contains("-"))
                     {
@@ -1795,7 +1795,7 @@ namespace TCPServer
                         $" set Status = 1, FinishTime = @bdate " +
                         $" where status = 1 and MachineId = @machineId and FinishTime is null " +
                          $" and (EndDate >= @bdate and BeginDate <= @enddate) and id<> @Id   end";
-            using (SqlConnection connection = new SqlConnection(Util.ConnectionStrings))
+            using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
                 using (SqlCommand command = new SqlCommand(sql, connection))
                 {
@@ -1877,7 +1877,7 @@ namespace TCPServer
                     {
                         _ = Util.UpdateMachineState(state.IMEI1, state.IMEI2, true);
                     }
-                    if (AsynchronousSocketListener.Imei1Log =="All" || state.IMEI1 == AsynchronousSocketListener.Imei1Log)
+                    if (TcpSettings.Imei1Log =="All" || state.IMEI1 == TcpSettings.Imei1Log)
                     {
                         Console.ForegroundColor = ConsoleColor.Cyan;
                         Console.WriteLine($"*************************************");
@@ -1896,13 +1896,13 @@ namespace TCPServer
         }
         private static string[] _CaptchaList = new string[100];
         static string SaltKey = "sample_salt";
-        public static string Encrypt(this string plainText, string passwordHash, string VIKey)
+        public static string Encrypt(this string plainText, string passwordHash)
         {
             byte[] plainTextBytes = Encoding.UTF8.GetBytes(plainText);
 
             byte[] keyBytes = new Rfc2898DeriveBytes(passwordHash, Encoding.ASCII.GetBytes(SaltKey), 1024).GetBytes(16);
             var symmetricKey = new RijndaelManaged() { Mode = CipherMode.CBC, Padding = PaddingMode.PKCS7 };
-            var encryptor = symmetricKey.CreateEncryptor(keyBytes, Convert.FromBase64String(VIKey));
+            var encryptor = symmetricKey.CreateEncryptor(keyBytes, Convert.FromBase64String(TcpSettings.VIKey));
 
             byte[] cipherTextBytes;
 
@@ -1921,9 +1921,8 @@ namespace TCPServer
         }
         internal static async Task SendWaitingGroupTest(StateObject stateObject)
         {
-            string definedTest = "";
-            string VIKey = "BgrUEy5IbpJSnhmqI2IhKw==";
-            using (SqlConnection connection = new SqlConnection(ConnectionStrings))
+            string definedTest = "";            
+            using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
                 try
                 {
@@ -1948,7 +1947,7 @@ namespace TCPServer
                     {
                         command.CommandTimeout = 100000;
                         command.CommandType = CommandType.Text;
-                        command.Parameters.AddWithValue("@l3Host", AsynchronousSocketListener.l3Host);
+                        command.Parameters.AddWithValue("@l3Host", TcpSettings.l3Host);
                         command.Parameters.AddWithValue("@IMEI1", stateObject.IMEI1);
                         connection.Open();
                         definedTest = (string)await command.ExecuteScalarAsync().ConfigureAwait(false);
@@ -1968,20 +1967,18 @@ namespace TCPServer
             {
                 foreach (var item in JArray.Parse(definedTest))
                 {
-                    var content = ("TST#" + item.ToString().Replace("}", "").Replace(",", "#").Replace("{", "")).Replace(" ", "").Replace("\r", "").Replace("\n", "").ToString().Encrypt("sample_shared_secret", VIKey);
+                    var content = ("TST#" + item.ToString().Replace("}", "").Replace(",", "#").Replace("{", "")).Replace(" ", "").Replace("\r", "").Replace("\n", "").ToString().Encrypt("sample_shared_secret");
                     if (AsynchronousSocketListener.SendedTest.Find(t => t.Contains(content)) == null)
                     {
-
-                        AsynchronousSocketListener.Send(stateObject.workSocket, VIKey + " ," + content);
+                        AsynchronousSocketListener.Send(stateObject.workSocket, TcpSettings.VIKey + " ," + content);
                     }
                 }
             }
         }
         internal static async Task SendWaitingTest(StateObject stateObject)
         {
-            string definedTest = "";
-            string VIKey = "BgrUEy5IbpJSnhmqI2IhKw==";
-            using (SqlConnection connection = new SqlConnection(Util.ConnectionStrings))
+            string definedTest = "";            
+            using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
                 try
                 {
@@ -2008,7 +2005,7 @@ namespace TCPServer
                     {   
                         command.CommandTimeout = 100000;
                         command.CommandType = CommandType.Text;
-                        command.Parameters.AddWithValue("@l3MessHost", AsynchronousSocketListener.l3Host);
+                        command.Parameters.AddWithValue("@l3MessHost", TcpSettings.l3Host);
                         command.Parameters.AddWithValue("@IMEI1", stateObject.IMEI1);
                         connection.Open();
                         definedTest = (string)await command.ExecuteScalarAsync().ConfigureAwait(false);
@@ -2027,11 +2024,12 @@ namespace TCPServer
             {
                 foreach (var item in JArray.Parse(definedTest))
                 {
-                    var content = ("TST#" + item.ToString().Replace("}", "").Replace(",", "#").Replace("{", "")).Replace(" ", "").Replace("\r", "").Replace("\n", "").ToString().Encrypt("sample_shared_secret", VIKey);
+                    var content = ("TST#" + item.ToString().Replace("}", "").Replace(",", "#").Replace("{", "")).Replace(" ", "").Replace("\r", "").Replace("\n", "").ToString().
+                               Encrypt("sample_shared_secret");
                     //change content by testid --98-12-01
                     if (AsynchronousSocketListener.SendedTest.Find(t => t.Contains(content)) == null)
                     {
-                        AsynchronousSocketListener.Send(stateObject.workSocket, VIKey + " ," + content);
+                        AsynchronousSocketListener.Send(stateObject.workSocket, TcpSettings.VIKey + " ," + content);
                         LogErrorAsync(new Exception("Send Test"),content,string.Join("-",item));
                     }
                 }
@@ -2039,9 +2037,8 @@ namespace TCPServer
         }
         internal static async Task UpdateVersion(StateObject stateObject)
         {
-            string newUpdate = "";
-            string VIKey = "BgrUEy5IbpJSnhmqI2IhKw==";
-            using (SqlConnection connection = new SqlConnection(Util.ConnectionStrings))
+            string newUpdate = "";            
+            using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
                 try
                 {
@@ -2075,18 +2072,18 @@ namespace TCPServer
                 if (!Convert.ToBoolean(curReq[0]["SendToDevice"].ToString()))
                 {
                     string sql = string.Empty;
-                    using (SqlConnection connection = new SqlConnection(Util.ConnectionStrings))
+                    using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
                     {
                         try
                         {
                             //دستور آپدیت دستگاه با آدرس فایل مورد نظردر سرور
-                            var content = ("UPD#\"VID\":" + curReq[0]["Id"] + "#\"TestDataServer\":" + "\"" + curReq[0]["FileDownloadAddress"].ToString().Split(':')[1].Substring(2) + "\"")
-                                                                   .Encrypt("sample_shared_secret", VIKey);
+                            var content = ("UPD#\"VID\":" + curReq[0]["Id"] + "#\"TestDataServer\":" + "\"" + curReq[0]["FileDownloadAddress"]+ "\"")
+                                                                   .Encrypt("sample_shared_secret");
                             if (AsynchronousSocketListener.DeviceList.Exists(x => x.IMEI1 == stateObject.IMEI1))
                             {
                                 connection.Open();
-                                sql = await Trans_AddVersionDetail(stateObject, VIKey, curReq, connection, sql, content);
-                                if (AsynchronousSocketListener.Imei1Log == "All" || stateObject.IMEI1 == AsynchronousSocketListener.Imei1Log)
+                                sql = await Trans_AddVersionDetail(stateObject, curReq, connection, sql, content);
+                                if (TcpSettings.Imei1Log == "All" || stateObject.IMEI1 == TcpSettings.Imei1Log)
                                 {
                                     Console.ForegroundColor = ConsoleColor.Yellow;
                                     Console.WriteLine($"*************************************");
@@ -2111,7 +2108,7 @@ namespace TCPServer
                 else
                 {
                     string ExsitUPD;
-                    using (SqlConnection connection = new SqlConnection(Util.ConnectionStrings))
+                    using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
                     {
                         try
                         {
@@ -2126,14 +2123,14 @@ namespace TCPServer
                                 ExsitUPD = (string)await command.ExecuteScalarAsync().ConfigureAwait(false);
                                 if (ExsitUPD == null) //if upd donot Exist, add Upd Recored and Send Updaet Message
                                 {
-                                    var content = ("UPD#\"VID\":" + curReq[0]["Id"] + "#\"TestDataServer\":" + "\"" + curReq[0]["FileDownloadAddress"].ToString().Split(':')[1].Substring(2) + "\"")
-                                                              .Encrypt("sample_shared_secret", VIKey);
+                                    var content = ("UPD#\"VID\":" + curReq[0]["Id"] + "#\"TestDataServer\":" + "\"" + curReq[0]["FileDownloadAddress"] + "\"")
+                                                              .Encrypt("sample_shared_secret");
                                     try
                                     {
                                         if (AsynchronousSocketListener.DeviceList.Exists(x => x.IMEI1 == stateObject.IMEI1))
                                         {
-                                            sql = await Trans_AddVersionDetail(stateObject, VIKey, curReq, connection, sql, content);
-                                            if (AsynchronousSocketListener.Imei1Log=="All" || stateObject.IMEI1 == AsynchronousSocketListener.Imei1Log)
+                                            sql = await Trans_AddVersionDetail(stateObject, curReq, connection, sql, content);
+                                            if (TcpSettings.Imei1Log=="All" || stateObject.IMEI1 == TcpSettings.Imei1Log)
                                             {
 
                                                 Console.ForegroundColor = ConsoleColor.Yellow;
@@ -2175,14 +2172,14 @@ namespace TCPServer
                                                     sql = await Trans_DelVersionDetail(curReq, connection, sql, detail_UpdId, stateObject.IMEI1);
                                                     //ارسال دوباره فرمان آپدیت                                        
                                                     //دستور آپدیت دستگاه با آدرس فایل مورد نظردر سرور
-                                                    var content = ("UPD#\"VID\":" + curReq[0]["Id"] + "#\"TestDataServer\":" + "\"" + curReq[0]["FileDownloadAddress"].ToString().Split(':')[1].Substring(2) + "\"")
-                                                                                                .Encrypt("sample_shared_secret", VIKey);
+                                                    var content = ("UPD#\"VID\":" + curReq[0]["Id"] + "#\"TestDataServer\":" + "\"" + curReq[0]["FileDownloadAddress"] + "\"")
+                                                                                                .Encrypt("sample_shared_secret");
                                                     try
                                                     {
                                                         if (AsynchronousSocketListener.DeviceList.Exists(x => x.IMEI1 == stateObject.IMEI1))
                                                         {
-                                                            sql = await Trans_AddVersionDetail(stateObject, VIKey, curReq, connection, sql, content);
-                                                            if (AsynchronousSocketListener.Imei1Log == "All" || stateObject.IMEI1 == AsynchronousSocketListener.Imei1Log)
+                                                            sql = await Trans_AddVersionDetail(stateObject, curReq, connection, sql, content);
+                                                            if (TcpSettings.Imei1Log == "All" || stateObject.IMEI1 == TcpSettings.Imei1Log)
                                                             {
                                                                 Console.ForegroundColor = ConsoleColor.Yellow;
                                                                 Console.WriteLine($"*************************************");
@@ -2224,7 +2221,7 @@ namespace TCPServer
                 }
             }
         }
-        public static async Task<string> Trans_AddVersionDetail(StateObject stateObject, string VIKey, JToken item, SqlConnection connection, string sql, string content)
+        public static async Task<string> Trans_AddVersionDetail(StateObject stateObject, JToken item, SqlConnection connection, string sql, string content)
         {
             var tx = connection.BeginTransaction();
             try
@@ -2252,7 +2249,7 @@ namespace TCPServer
                     //if (AsynchronousSocketListener.SocketConnected(stateObject))
                     //{
                     tx.Commit();
-                    AsynchronousSocketListener.Send(stateObject.workSocket, VIKey + " ," + content);
+                    AsynchronousSocketListener.Send(stateObject.workSocket, TcpSettings.VIKey + " ," + content);
                     //}
                 }
                 catch (Exception ex)
@@ -2323,7 +2320,7 @@ namespace TCPServer
         }
         internal static async Task UpdateMachineState(string IMEI1, string IMEI2, bool IsConnected,string machineVersion="")
         {
-            using (SqlConnection connection = new SqlConnection(Util.ConnectionStrings))
+            using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
                 try
                 {
@@ -2362,7 +2359,7 @@ namespace TCPServer
         }
         internal static async Task UpdateMachineStateByVersion(string IMEI1, string IMEI2, bool IsConnected, string machineVersion = "")
         {
-            using (SqlConnection connection = new SqlConnection(Util.ConnectionStrings))
+            using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
                 try
                 {
@@ -2397,7 +2394,7 @@ namespace TCPServer
         }
         internal static async Task UpdateMachineLocation(string IMEI1, string IMEI2, string lat, string lon, double speed = 0.0,double speed2=0.0,double altitude=0.0, DateTime? DateFromDevice = null, float? CpuTemprature = null)
         {
-            using (SqlConnection connection = new SqlConnection(Util.ConnectionStrings))
+            using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
                 try
                 {
@@ -2418,7 +2415,7 @@ namespace TCPServer
                         command.Parameters.AddWithValue("@Speed", speed);
                         command.Parameters.AddWithValue("@Speed2", speed2);
                         command.Parameters.AddWithValue("@Altitude", altitude);
-                        if (DateFromDevice != null)
+                        if (DateFromDevice != null)  
                         {
                             command.Parameters.AddWithValue("@fromDevice", DateFromDevice);
                         }
@@ -2476,7 +2473,7 @@ namespace TCPServer
             {
                 exception.Data.ToJsonString();
             }
-            using (SqlConnection con = new SqlConnection(Util.ConnectionStrings))
+            using (SqlConnection con = new SqlConnection(TcpSettings.ConnectionString))
             {
                 var com = con.CreateCommand();
                 com.CommandText = @"INSERT INTO [system].[Errors]

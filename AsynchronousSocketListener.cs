@@ -16,18 +16,13 @@ namespace TCPServer
 {
     public static class AsynchronousSocketListener
     {
-        
         // Thread signal.  
         public static ManualResetEvent allDone = new ManualResetEvent(false);
         public static object LockDev = new object();   
         public static List<StateObject> DeviceList;
-        public static List<string> SendedTest = new List<string>();
-        public static double ctSecond = 10;
+        public static List<string> SendedTest = new List<string>();        
         public static Socket listener;
-        public static string Imei1Log = "";        
-        public static string l3Host = string.Empty;
-
-        public static void StartListening(string ip, int port,IConfigurationRoot configRoot)
+        public static void StartListening(string ip, int port)
         {            
             Console.WriteLine("*********************************************************");
             Console.WriteLine($" Server by Ip {ip} on Port {port} ready for Listen      ");
@@ -37,19 +32,10 @@ namespace TCPServer
             Console.WriteLine("  Press CTRL+C For ShutDown Server                       ");
             Console.WriteLine("*********************************************************");                        
             DeviceList = new List<StateObject>();
-            listener = new Server(ip, port)._listener;
-            /*General Timer */
-            var genTimer = new System.Timers.Timer(double.Parse(configRoot.GetSection("Timer:TGenral").Value) * 6000); //after 1 minute
+            listener = new Server(ip, port)._listener;            
+            var genTimer = new System.Timers.Timer(TcpSettings.TGenral); //after 1 minute
             genTimer.Elapsed += GenTimer_Elapsed;
-            genTimer.Start();
-            /*Client Timer ElpasedTime Read */
-            /*set Log Imei1*/
-            Imei1Log = string.IsNullOrEmpty(configRoot.GetSection("Logging:LogIMEI").Value) ? "All": configRoot.GetSection("Logging:LogIMEI").Value;
-
-            ctSecond = double.Parse(configRoot.GetSection("Timer:TClient").Value)*1000;//client Timer, elapsed . microSecond
-            
-            l3Host = string.IsNullOrEmpty(configRoot.GetSection("Config:l3MessageFolder").Value) ? string.Empty :
-                                          configRoot.GetSection("Config:l3MessageFolder").Value;
+            genTimer.Start();            
             while (true)
             {               
                 // Set the event to nonsignaled state.  
@@ -60,12 +46,6 @@ namespace TCPServer
                 allDone.WaitOne();
 			}                 
         }
-
-        private static string createConfigParam()
-        {
-            return $"185.192.112.74:80#185.192.112.74:80";
-        }
-
         private static void GenTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             var a = (System.Timers.Timer)sender;
@@ -104,7 +84,7 @@ namespace TCPServer
                     {
                         DeviceList.Remove(CurItem);
                     }
-                    if (AsynchronousSocketListener.Imei1Log == "All"  || item.IMEI1 == Imei1Log)
+                    if (TcpSettings.Imei1Log == "All"  || item.IMEI1 == TcpSettings.Imei1Log)
                     {
                         Console.ForegroundColor = ConsoleColor.Red;
                         Console.WriteLine($"*************************************");
@@ -133,7 +113,7 @@ namespace TCPServer
                     // Create the state object.                      
                     StateObject state = new StateObject{
                         workSocket = client,
-                        Timer = new System.Timers.Timer(ctSecond),
+                        Timer = new System.Timers.Timer(TcpSettings.ctSecond),
                         IsConnected = true,
                         counter = 0,
                         value = string.Empty,
@@ -301,7 +281,7 @@ namespace TCPServer
 
         private static async Task ParseMsg(string content, StateObject client)
         {
-            if (AsynchronousSocketListener.Imei1Log == "All" || client.IMEI1 == Imei1Log)
+            if (TcpSettings.Imei1Log == "All" || client.IMEI1 == TcpSettings.Imei1Log)
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.WriteLine($"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
@@ -389,7 +369,7 @@ namespace TCPServer
                         }
                         else
                         {
-                            if (AsynchronousSocketListener.Imei1Log == "All"  || stateObject.IMEI1 == Imei1Log)
+                            if (TcpSettings.Imei1Log == "All"  || stateObject.IMEI1 == TcpSettings.Imei1Log)
                             {
                                 Console.ForegroundColor = ConsoleColor.Yellow;
                                 Console.WriteLine($">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");

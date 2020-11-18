@@ -25,11 +25,11 @@ namespace TCPServer.Models
             PortServer = port;
             IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
             //IPAddress ipAddress = System.Net.IPAddress.Parse(IpServer); //for err : The Address Request invaid
-            IPAddress ipAddress = System.Net.IPAddress.Any;
+            IPAddress ipAddress = System.Net.IPAddress.Parse(IpServer) ?? System.Net.IPAddress.Any;
             IPEndPoint localEndPoint = new IPEndPoint(ipAddress, PortServer);
             _listener = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             try
-            {
+            {                
                 _listener.Bind(localEndPoint);
                 _listener.Listen(100);
             }
