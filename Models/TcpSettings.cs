@@ -12,6 +12,7 @@ namespace TCPServer.Models
         public static double TGenral { get; set; }
         public static string Imei1Log { get; set; }
         public static string l3Host { get; set; }
+        public static string Rest { get; set; }
         public static string serverPath { get; set; }
         public static readonly HttpClientHandler _handler = new HttpClientHandler
         {

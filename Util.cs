@@ -102,7 +102,7 @@ namespace TCPServer
                 Console.WriteLine($"*************************************");
                 Console.ForegroundColor = ConsoleColor.Green;
             }
-             Util.SyncDevice(state);
+             _=Util.SyncDevice(state);
         }
 
         /// <summary>
@@ -440,7 +440,6 @@ namespace TCPServer
                             using (SqlCommand command3 = new SqlCommand(sql, connection))
                             {
                                 command3.CommandTimeout = 100000;
-                                command3.CommandType = CommandType.Text;
                                 command3.Transaction = tx;
                                 command3.Parameters.AddWithValue("@PsyncId", syncMasterId);
                                 command3.Parameters.AddWithValue("@CreateDate", DateTime.Now);
@@ -448,7 +447,7 @@ namespace TCPServer
                                 command3.Parameters.AddWithValue("@status", 1);
                                 await command3.ExecuteScalarAsync().ConfigureAwait(false);
                                 tx.Commit();                                                             
-                                var msg = ($"SYN#\"SId\":{syncMasterId}#");
+                                var msg = ($"SYN#\"SId\":{syncMasterId}#\"Rest\":\"{TcpSettings.Rest}\"#");
                                 var content = msg.Encrypt("sample_shared_secret");
                                 AsynchronousSocketListener.Send(state.workSocket,TcpSettings.VIKey + " ," + content);
                                 if (TcpSettings.Imei1Log == "All" || state.IMEI1 == TcpSettings.Imei1Log)
@@ -1361,7 +1360,7 @@ namespace TCPServer
                                             }
 
                                             inseretStatment = inseretStatment + t[0] + " ,";
-                                            valueStatmenet = valueStatmenet + (int.TryParse(t[1], out i) || t[1].Contains("0x") ? i.ToString() : t[1]=="NuNu" ? null: "'"+ t[1]  + "'") + " ,";
+                                            valueStatmenet = valueStatmenet + (int.TryParse(t[1].Replace("dBm",""), out i) || t[1].Contains("0x") ? i.ToString() : t[1]=="NuNu" ?"null": "'"+ t[1].Replace("dBm","")  + "'") + " ,";
                                         }
 
                                     }
@@ -1491,7 +1490,7 @@ namespace TCPServer
                         if (int.TryParse(param.Split(":")[1], out ber))
                         {
                             if (ber >= 99) //مقدار غیر صحیح
-                                return new string[] { "BER", DBNull.Value.ToString() };
+                                return new string[] { "BER", "NuNu" };
                             else
                                 return new string[] { "BER", param.Split(":")[1] };
                         }
@@ -1524,7 +1523,7 @@ namespace TCPServer
                         int cidValue;
                         if (int.TryParse(param.Split(":")[1], out cidValue))
                         {
-                            if (cidValue == -1) //مقدار غیر صحیح
+                            if (cidValue == -1 || cidValue == 0 ) //مقدار غیر صحیح
                                 return new string[] { "CID", "NuNu" };
                             else
                                 return new string[] { "CID", cidValue.ToString() };
@@ -1594,6 +1593,9 @@ namespace TCPServer
                         return new string[] { "RSCP", tmpVal.ToString() };
                     case "RSRP":
                         float.TryParse(param.Split(":")[1], out tmpVal); tmpVal /= 10;//addeddby-omid-981227
+                        if(tmpVal > 0 ){
+                            return new string[] { "RSRP", "NuNu" };   //add in 990905.drvahidpour said 
+                        }
                         return new string[] { "RSRP", tmpVal.ToString() };
                     case "RSSI":
                         float.TryParse(param.Split(":")[1], out tmpVal); tmpVal /= 10;//addeddby-omid-981229

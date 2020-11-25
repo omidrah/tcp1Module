@@ -63,9 +63,12 @@ namespace TCPServer
             //client Timer, elapsed . microSecond
             TcpSettings.ctSecond = double.Parse(configuration.GetSection("Timer:TClient").Value) * 1000;
             //layer3Host Address
-            TcpSettings.l3Host = string.IsNullOrEmpty(configuration.GetSection("Config:l3MessageFolder").Value) ?
-                                            string.Empty :
-                                          configuration.GetSection("Config:l3MessageFolder").Value;
+            TcpSettings.l3Host = string.IsNullOrEmpty(
+                configuration.GetSection("Config:l3MessageFolder").Value) ?
+                                            string.Empty :configuration.GetSection("Config:l3MessageFolder").Value;
+            //Rest--> use for DateTime in Device
+            TcpSettings.Rest = string.IsNullOrWhiteSpace(configuration.GetSection("Config:Rest").Value) ?
+                                   string.Empty : configuration.GetSection("Config:Rest").Value;
             TcpSettings.ConnectionString = configuration.GetConnectionString("DefaultConnection");
         }
 
