@@ -1789,14 +1789,13 @@ namespace TCPServer
         /// <param name="TestId">New Test Assing To Device</param>
         private static async Task UpdatePreviousTestFinishTime(StateObject state, string TestId)
         {
-            //ToDo:omid: پس از تعریف تست جدید برای دستگاه درصورت هم پوشانی زمانی با تست از قبل تعریف شده و درحال اجرا نیاز است که تست قبلی بروزرشانس شود:990626
-            string sql = $"declare @bdate datetime,@enddate datetime,@machineId int;" +
-               $" begin" +
-               $" select @bdate = BeginDate , @enddate = EndDate , @machineId=MachineId from DefinedTestMachine  where id =@Id; " +
+            //ToDo:omid: پس از تعریف تست جدید برای دستگاه درصورت هم پوشانی زمانی با تست از قبل تعریف شده و درحال اجرا نیاز است که تست قبلی بروزرسانی شود:990626
+            string sql = $"declare @bdate datetime,@enddate datetime,@machineId int; " +
+               $" begin select @bdate = BeginDate , @enddate = EndDate , @machineId=MachineId from DefinedTestMachine  where id =@Id; " +
                   $" update DefinedTestMachine " +
-                        $" set Status = 1, FinishTime = @bdate " +
-                        $" where status = 1 and MachineId = @machineId and FinishTime is null " +
-                         $" and (EndDate >= @bdate and BeginDate <= @enddate) and id<> @Id   end";
+                  $" set Status = 1, FinishTime = @bdate " +
+                  $" where status = 1 and MachineId = @machineId and FinishTime is null " +
+                  $" and (EndDate >= @bdate and BeginDate <= @enddate) and id <> @Id   end";
             using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
                 using (SqlCommand command = new SqlCommand(sql, connection))
