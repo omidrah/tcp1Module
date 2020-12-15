@@ -8,10 +8,6 @@ using System.Timers;
 using TCPServer.Models;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
-using Elmah.Io.Client.Models;
-using System.IO;
-
 namespace TCPServer
 {
     public static class AsynchronousSocketListener
@@ -217,6 +213,7 @@ namespace TCPServer
             }
         }
         private static async Task CheckValue(StateObject client)
+        
         {
             if (client.value.Contains("SHORU")) //has shoru
             {

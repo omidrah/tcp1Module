@@ -15,7 +15,6 @@ using TCPServer.Models;
 
 namespace TCPServer
 {
-	
     public static class Util
     {
         internal static async Task ProcessProbeRecievedContent(StateObject state, string content)
@@ -27,16 +26,17 @@ namespace TCPServer
                 string body = text.Decrypt("sample_shared_secret", vikey);
                 _ = Util.LogErrorAsync(new Exception("Socekt ReadCallback"), (body ?? "").ToString(), state.IP);
                 string[] paramArray = body.Replace("\\", string.Empty).Replace("\"", string.Empty).Split('#');
+                
                 switch (paramArray[0])
                 {
                     case "MID":  //for register device and first connection to server --omid added
-                        ProcessMIDRecievedContent(state, paramArray).ConfigureAwait(false);
+                        _ = ProcessMIDRecievedContent(state, paramArray).ConfigureAwait(false);
                         break;
                     case "SRQ":  //Device Say that want sync
-                        ProcessDeviceWantSync(state, paramArray).ConfigureAwait(false);
+                        _ = ProcessDeviceWantSync(state, paramArray).ConfigureAwait(false);
                         break;
                     case "TSC": //for communication and run task on device between device and server --omid added
-                        ProcessTSCRecievedContent(state, paramArray).ConfigureAwait(false);
+                       _ = ProcessTSCRecievedContent(state, paramArray).ConfigureAwait(false);
                         break;
                     case "UPG": //Device Say that , its get Update message 
                         _ = ProcessUPGRecievedContent(state, paramArray).ConfigureAwait(false);
@@ -70,7 +70,7 @@ namespace TCPServer
                         break;
                     case "USD":
                     case "SMS":
-                        ProcessUSDSMS(state, paramArray).ConfigureAwait(false);
+                        _ = ProcessUSDSMS(state, paramArray).ConfigureAwait(false);
                         break;
                     case "YesI'mThere": //addby omid
                         if(paramArray.Length > 1)
@@ -409,58 +409,78 @@ namespace TCPServer
                 var tx = connection.BeginTransaction();
                 try
                 {
-                    string sql = "insert into SyncMaster" +
-                        "(MachineId,IMEI1,Status,CreateDate,DisconnectedDate,CntFileGet,IsCompeleted) " +
-                    " values ((select id from machine where IMEI1 =@IMEI1),@IMEI1,@Status,@CreateDate,@DisconnectedDate,@CntFileGet,@IsCompeleted);" +
-                    " select SCOPE_IDENTITY()";
-                    using (SqlCommand command = new SqlCommand(sql, connection))
+                    string sql = $" select id,TimeZone from machine where IMEI1 =@IMEI1";
+                    using (SqlCommand command0 = new SqlCommand(sql, connection))
                     {
-                        command.CommandTimeout = 100000;
-                        command.CommandType = CommandType.Text;
-                        command.Transaction = tx;
-                        command.Parameters.AddWithValue("@IMEI1", state.IMEI1);
-                        command.Parameters.AddWithValue("@Status", 1);
-                        command.Parameters.AddWithValue("@CreateDate", DateTime.Now);
-                        command.Parameters.AddWithValue("@DisconnectedDate", DBNull.Value);
-                        command.Parameters.AddWithValue("@CntFileGet", 0);
-                        command.Parameters.AddWithValue("@IsCompeleted", 0);
-                        var syncMasterId = (decimal)await command.ExecuteScalarAsync().ConfigureAwait(false);
-                        sql = $"insert into SyncDetail (PsyncId,CreateDate,Command,status) values (@PsyncId,@CreateDate,@Command,@status)";
-                        using (SqlCommand command2 = new SqlCommand(sql, connection))
+                        command0.CommandTimeout = 100000;
+                        command0.CommandType = CommandType.Text;
+                        command0.Transaction = tx;
+                        command0.Parameters.AddWithValue("@IMEI1", state.IMEI1);
+                        var selectedMachine = await command0.ExecuteReaderAsync().ConfigureAwait(false);
+                        int machineId=0; string timeZone=string.Empty;
+                        if (selectedMachine.Read())
                         {
-                            command2.CommandTimeout = 100000;
-                            command2.CommandType = CommandType.Text;
-                            command2.Transaction = tx;
-                            command2.Parameters.AddWithValue("@PsyncId", syncMasterId);
-                            command2.Parameters.AddWithValue("@CreateDate", DateTime.Now);
-                            command2.Parameters.AddWithValue("@Command", "SRQ");
-                            command2.Parameters.AddWithValue("@status", 1);
-                            await command2.ExecuteScalarAsync().ConfigureAwait(false);
-                            sql = $"insert into SyncDetail (PsyncId,CreateDate,Command,status) values (@PsyncId,@CreateDate,@Command,@status)";
-                            using (SqlCommand command3 = new SqlCommand(sql, connection))
+                            int.TryParse(selectedMachine["id"].ToString(), out machineId);
+                            timeZone = selectedMachine["TimeZone"].ToString();
+                        }
+                        selectedMachine.Close();
+                        if (machineId > 0)
+                        {
+                            sql = "insert into SyncMaster" +
+                                    "(MachineId,IMEI1,Status,CreateDate,DisconnectedDate,CntFileGet,IsCompeleted) " +
+                                    " values (@MachineId,@IMEI1,@Status,@CreateDate,@DisconnectedDate,@CntFileGet,@IsCompeleted);" +
+                                    " select SCOPE_IDENTITY()";
+                            using (SqlCommand command = new SqlCommand(sql, connection))
                             {
-                                command3.CommandTimeout = 100000;
-                                command3.Transaction = tx;
-                                command3.Parameters.AddWithValue("@PsyncId", syncMasterId);
-                                command3.Parameters.AddWithValue("@CreateDate", DateTime.Now);
-                                command3.Parameters.AddWithValue("@Command", "SYN");
-                                command3.Parameters.AddWithValue("@status", 1);
-                                await command3.ExecuteScalarAsync().ConfigureAwait(false);
-                                tx.Commit();                                                             
-                                var msg = ($"SYN#\"SId\":{syncMasterId}#\"Rest\":\"{TcpSettings.Rest}\"#");
-                                var content = msg.Encrypt("sample_shared_secret");
-                                AsynchronousSocketListener.Send(state.workSocket,TcpSettings.VIKey + " ," + content);
-                                if (TcpSettings.Imei1Log == "All" || state.IMEI1 == TcpSettings.Imei1Log)
+                                command.CommandTimeout = 100000;
+                                command.CommandType = CommandType.Text;
+                                command.Transaction = tx;
+                                command.Parameters.AddWithValue("@MachineId", machineId);
+                                command.Parameters.AddWithValue("@IMEI1", state.IMEI1);
+                                command.Parameters.AddWithValue("@Status", 1);
+                                command.Parameters.AddWithValue("@CreateDate", DateTime.Now);
+                                command.Parameters.AddWithValue("@DisconnectedDate", DBNull.Value);
+                                command.Parameters.AddWithValue("@CntFileGet", 0);
+                                command.Parameters.AddWithValue("@IsCompeleted", 0);
+                                var syncMasterId = (decimal)await command.ExecuteScalarAsync().ConfigureAwait(false);
+                                sql = $"insert into SyncDetail (PsyncId,CreateDate,Command,status) values (@PsyncId,@CreateDate,@Command,@status)";
+                                using (SqlCommand command2 = new SqlCommand(sql, connection))
                                 {
-                                    Console.ForegroundColor = ConsoleColor.Yellow;
-                                    Console.WriteLine($"*************************************");
-                                    Console.WriteLine($"Send Sync IMEI1 ={state.IMEI1} IP={state.IP}");
-                                    Console.WriteLine($"*************************************");
-                                    Console.ForegroundColor = ConsoleColor.Green;
+                                    command2.CommandTimeout = 100000;
+                                    command2.CommandType = CommandType.Text;
+                                    command2.Transaction = tx;
+                                    command2.Parameters.AddWithValue("@PsyncId", syncMasterId);
+                                    command2.Parameters.AddWithValue("@CreateDate", DateTime.Now);
+                                    command2.Parameters.AddWithValue("@Command", "SRQ");
+                                    command2.Parameters.AddWithValue("@status", 1);
+                                    await command2.ExecuteScalarAsync().ConfigureAwait(false);
+                                    sql = $"insert into SyncDetail (PsyncId,CreateDate,Command,status) values (@PsyncId,@CreateDate,@Command,@status)";
+                                    using (SqlCommand command3 = new SqlCommand(sql, connection))
+                                    {
+                                        command3.CommandTimeout = 100000;
+                                        command3.Transaction = tx;
+                                        command3.Parameters.AddWithValue("@PsyncId", syncMasterId);
+                                        command3.Parameters.AddWithValue("@CreateDate", DateTime.Now);
+                                        command3.Parameters.AddWithValue("@Command", "SYN");
+                                        command3.Parameters.AddWithValue("@status", 1);
+                                        await command3.ExecuteScalarAsync().ConfigureAwait(false);
+                                        tx.Commit();
+                                        var msg = ($"SYN#\"SId\":{syncMasterId}#\"Rest\":\"{TcpSettings.Rest}\"#\"TimeZone\":\"{timeZone}\"#");                                       
+                                        var content = msg.Encrypt("sample_shared_secret");
+                                        AsynchronousSocketListener.Send(state.workSocket, TcpSettings.VIKey + " ," + content);
+                                        if (TcpSettings.Imei1Log == "All" || state.IMEI1 == TcpSettings.Imei1Log)
+                                        {
+                                            Console.ForegroundColor = ConsoleColor.Yellow;
+                                            Console.WriteLine($"*************************************");
+                                            Console.WriteLine($"Send Sync IMEI1 ={state.IMEI1} IP={state.IP} TimZone={timeZone}");
+                                            Console.WriteLine($"*************************************");
+                                            Console.ForegroundColor = ConsoleColor.Green;
+                                        }
+                                        _ = LogErrorAsync(new Exception($"Send Sync IMEI1{state.IMEI1}"), msg, $"IMEI ={state.IMEI1} IP= {state.IP}").ConfigureAwait(false);
+                                    }
                                 }
-                                _ = LogErrorAsync(new Exception($"Send Sync IMEI1{state.IMEI1}"), msg, $"IMEI ={state.IMEI1} IP= {state.IP}").ConfigureAwait(false);
                             }
-                        }                        
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -774,7 +794,7 @@ namespace TCPServer
                     {
                         Console.ForegroundColor = ConsoleColor.DarkGray;
                         Console.WriteLine($"*************************************");
-                        Console.WriteLine($"Get LOC From IMEI1 ={state.IMEI1} @{DateTime.Now}");                        
+                        Console.WriteLine($"Get LOC From IMEI1 ={state.IMEI1} serverLocalTime = @{DateTime.Now} serverUtcTime= @{DateTime.UtcNow}");                        
                         Console.WriteLine($"*************************************");
                         Console.ForegroundColor = ConsoleColor.Green;
                     }
@@ -1237,8 +1257,8 @@ namespace TCPServer
                     }
                     else
                     {
-                        string createDate = string.Empty;
-                        bool cnt = false;
+                        string createDate = string.Empty;                        
+                        
                         int TestId = 0; //omid added --981121                        
                         string inseretStatment = "insert into TestResult(";
                         string valueStatmenet = "Values(";
@@ -1351,16 +1371,16 @@ namespace TCPServer
                                                     valueStatmenet += "'" + Jhop[3] + "', " + Convert.ToDouble(Jhop[6]) + " , ";
                                                 }
                                             }
-                                        }
+                                        }                                      
                                         else
                                         {
                                             if (t[0] == "CreateDate")
                                             {
                                                 createDate = t[1].ToString();
-                                            }
-
+                                            }                                            
                                             inseretStatment = inseretStatment + t[0] + " ,";
-                                            valueStatmenet = valueStatmenet + (int.TryParse(t[1].Replace("dBm",""), out i) || t[1].Contains("0x") ? i.ToString() : t[1]=="NuNu" ?"null": "'"+ t[1].Replace("dBm","")  + "'") + " ,";
+                                            valueStatmenet = valueStatmenet +
+                                                (int.TryParse(t[1].Replace("dBm",""), out i) || t[1].Contains("0x") ? i.ToString() : t[1]=="NuNu" ?"null": "'"+ t[1].Replace("dBm","")  + "'") + " ,";
                                         }
 
                                     }
@@ -1620,6 +1640,8 @@ namespace TCPServer
                         return new string[] { "TraceRoute", param.Split(":")[1] };
                     case "TIME":
                         return new string[] { "CreateDate", param.Split(":")[1] + ":" + param.Split(":")[2] + ":" + param.Split(":")[3] };
+                    case "UTC":
+                        return new string[] { "UTC", param.Split(":")[1] + ":" + param.Split(":")[2] + ":" + param.Split(":")[3] };
                     case "GPS":
                         return new string[] { "GPS", param.Split(":")[1] };
                     case "Layer3":
