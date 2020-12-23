@@ -1412,7 +1412,7 @@ namespace TCPServer
                                 }
                             }
                         }
-                        var ExtraParam = await _GetParameterbyTestReultId(TestId); // omid added -- 98 11 21
+                        var ExtraParam = await _GetParameterbyTestReultId(TestId,createDate); // omid added -- 98 11 21
                         await InsertTestResult(inseretStatment + " CreateDateFa, MachineId, MachineName, DefinedTestId, DefinedTestName,SelectedSim,BeginDateTest,EndDateTest ) " + valueStatmenet +
                                              $" cast([dbo].[CalculatePersianDate]('{createDate}')as nvarchar(max)) + N' '+cast(convert(time(0),'{createDate.Split(' ')[1]}') as nvarchar(max)),"
                                                                                 + ExtraParam[1] + ", '" + ExtraParam[5] + "' ," + ExtraParam[0] + ",'" + ExtraParam[6] + "'," + ExtraParam[2] + ", '" + ExtraParam[3] + "' , '" + ExtraParam[4] + "' )", state);
@@ -1451,43 +1451,60 @@ namespace TCPServer
         /// </summary>
         /// <param name="TestId">DefinedTestMachineId</param>
         /// <returns></returns>
-        private static async Task<string[]> _GetParameterbyTestReultId(int TestId)
+        private static async Task<string[]> _GetParameterbyTestReultId(int TestId,string createDate)
         {
             var res = new string[7];
             using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
+                connection.Open();
+                var tx = connection.BeginTransaction();
                 try
                 {
-                    string sql = $"select dtm.DefinedTestId , dtm.MachineId ,dtm.SIM ,dtm.BeginDate , dtm.EndDate , m.Name, dt.Title" +
+                    var sql = $" select  dtm.DefinedTestId , dtm.MachineId ,dtm.SIM ,dtm.BeginDate , dtm.EndDate , m.Name, dt.Title" +
                                  $" from DefinedTestMachine as dtm" +
                                  $" left join Machine as m on dtm.MachineId = m.Id" +
                                  $" left join DefinedTest as dt on dtm.DefinedTestId = dt.id" +
-                                 $" where dtm.id = {TestId}";
-                    using (SqlCommand command = new SqlCommand(sql, connection))
+                                 $" where dtm.id = {TestId}";                                 
+                    var com2 = new SqlCommand(sql, connection);
+                    com2.CommandTimeout = 100000;
+                    com2.Transaction = tx;
+                    var reader = await com2.ExecuteReaderAsync().ConfigureAwait(false);
+                    if (reader.Read())
+                    {                        
+                        res[0] = reader["DefinedTestId"].ToString();
+                        res[1] = reader["MachineId"].ToString();
+                        res[2] = reader["SIM"].ToString();
+                        res[3] = reader["BeginDate"].ToString();
+                        res[4] = reader["EndDate"].ToString();
+                        res[5] = reader["Name"].ToString();  // machine name
+                        res[6] = reader["Title"].ToString(); // Test name
+                    }
+                    reader.Close();
+                    //update lastTestResult in  machine Table ==> 991002
+                    try
                     {
-                        command.CommandTimeout = 100000;
-                        command.CommandType = CommandType.Text;
-                        connection.Open();
-                        var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
-                        if (reader.Read())
-                        {
-                            //reader.Read();
-                            //Console.WriteLine(reader);
-                            res[0] = reader["DefinedTestId"].ToString();
-                            res[1] = reader["MachineId"].ToString();
-                            res[2] = reader["SIM"].ToString();
-                            res[3] = reader["BeginDate"].ToString();
-                            res[4] = reader["EndDate"].ToString();
-                            res[5] = reader["Name"].ToString();//machine name
-                            res[6] = reader["Title"].ToString(); //Test name
-                        }
-                        reader.Close();
+                        sql = $" update machine set LastTestResult = @createDate where id = {res[1]}";
+                        var com3 = new SqlCommand(sql, connection);
+                        com3.CommandTimeout = 100000;
+                        com3.CommandType = CommandType.Text;
+                        com3.Transaction = tx;
+                        DateTime.TryParse(createDate, out DateTime fromDevice);
+                        com3.Parameters.AddWithValue("@createDate",fromDevice );
+                        await com3.ExecuteScalarAsync().ConfigureAwait(false);                        
+                        tx.Commit();                   
+                    }
+                    catch (Exception ex)
+                    {
+                        _ = LogErrorAsync(ex, "1299 -- Method -- Trans in Update lastTestResult in machine");
+                        tx.Rollback();
                     }
                 }
                 catch (Exception ex)
                 {
-                    _ = LogErrorAsync(ex, "658 - Method-- _GetParameterbyTestReultId").ConfigureAwait(false);
+                    _ = LogErrorAsync(ex, "1509 -- Method -- _GetParameterbyTestReultId");
+                    tx.Rollback();
                 }
+                    
                 finally
                 {
                     connection.Close();
@@ -1950,8 +1967,10 @@ namespace TCPServer
                 try
                 {
                     string sql = $"SELECT -1 * DTMG.Id Id, dt.Title, dt.Layer3Messages, case when dt.Layer3Messages =1 then l3Host end ServerUrlL3, dt.RepeatTypeId, dt.RepeatTime, dt.RepeatCount, dt.MeasurementInterval, dt.TestTypeId, dt.UsualCallDuration, " +
-                        $" dt.UsualCallWaitTime, dt.UsualCallNumber, dt.TestDataId, dt.TestDataTypeId, replace(replace(replace(case when(dt.TestDataDownloadFileAddress is null or dt.TestDataDownloadFileAddress = N'')then " +
-                        $" dt.TestDataServer else dt.TestDataServer + N'/' + dt.TestDataDownloadFileAddress end ,N'//',N'/'),N'https:/',N''),N'http:/',N'') as TestDataServer, dt.TestDataUserName, dt.TestDataPassword , dt.TestDataUploadFileSize as FileSize, " +
+                        $" dt.UsualCallWaitTime, dt.UsualCallNumber, dt.TestDataId, dt.TestDataTypeId, replace(replace(replace(case when (dt.DlFileAddress is null or dt.DlFileAddress = N'' ) then  " +
+                        $" dt.DlServer else dt.DlServer + N'/' + dt.DlFileAddress end ,N'//',N'/'),N'https:/',N''),N'http:/',N'') as DlServer, dt.DlUserName, dt.DlPassword,dt.DlTime, " +
+                        $" replace(replace(replace(case when (dt.UpFileAddress is null or dt.UpFileAddress = N'' ) then  " +
+                        $" dt.UpServer else dt.UpServer + N'/' + dt.UpFileAddress end ,N'//',N'/'),N'https:/',N''),N'http:/',N'') as UpServer ,  dt.UpTime, dt.UpFileSize,dt.UpUserName,dt.UpPassword, " +
                         $" dt.IPTypeId, dt.OTTServiceId, dt.OTTServiceTestId, dt.NetworkId, dt.BandId , dt.SaveLogFile, dt.LogFilePartitionTypeId, dt.LogFilePartitionTime, " +
                         $" dt.LogFilePartitionSize, dt.LogFileHoldTime, dt.NumberOfPings, dt.PacketSize, dt.InternalTime, dt.ResponseWaitTime, dt.TTL,replace(CONVERT(varchar(26), DTMG.BeginDate, 121), " +
                         $" N':', N'-') BeginDate, replace(CONVERT(varchar(26), DTMG.EndDate, 121), N':', N'-') EndDate, DTMG.SIM,  " +
@@ -2007,23 +2026,27 @@ namespace TCPServer
                 {
                     string sql = $"SELECT DTM.Id Id, dt.Title, dt.Layer3Messages, case when dt.Layer3Messages =1 then @l3MessHost end TestDataServerL3, " +
                         $" dt.RepeatTypeId, dt.RepeatTime, dt.RepeatCount, dt.MeasurementInterval, dt.TestTypeId, dt.UsualCallDuration, " +
-                        $"dt.UsualCallWaitTime, dt.UsualCallNumber, dt.TestDataId, dt.TestDataTypeId, replace(replace(replace(case when (dt.TestDataDownloadFileAddress is null or dt.TestDataDownloadFileAddress = N'' )then  " +
-                        $"dt.TestDataServer else dt.TestDataServer + N'/' + dt.TestDataDownloadFileAddress end ,N'//',N'/'),N'https:/',N''),N'http:/',N'') as TestDataServer, dt.TestDataUserName, dt.TestDataPassword , dt.TestDataUploadFileSize as FileSize, " +
-                        $"dt.IPTypeId, dt.OTTServiceId, dt.OTTServiceTestId, dt.NetworkId, dt.BandId , dt.SaveLogFile, dt.LogFilePartitionTypeId, dt.LogFilePartitionTime, " +
-                        $"dt.LogFilePartitionSize, dt.LogFileHoldTime, dt.NumberOfPings, dt.PacketSize, dt.InternalTime, dt.ResponseWaitTime, " +
-                        $" dt.TTL,replace(CONVERT(varchar(26),DTM.BeginDate, 121) , " +
-                        $"N':',N'-') BeginDate, replace(CONVERT(varchar(26),DTM.EndDate, 121),N':',N'-') EndDate, DTM.SIM,  " +
-                        $"                    case when TesttypeId not in(4, 2) then testtypeid " +
-                        $"            when TestTypeId = 2 then '2' + cast(TestDataTypeId as nvarchar(10)) " +
-                        $"            when TestTypeId = 4 then '4' + " +
+                        $" dt.UsualCallWaitTime, dt.UsualCallNumber, dt.TestDataId, dt.TestDataTypeId, replace(replace(replace(case when (dt.DlFileAddress is null or dt.DlFileAddress = N'' ) then  " +
+                        $" dt.DlServer else dt.DlServer + N'/' + dt.DlFileAddress end ,N'//',N'/'),N'https:/',N''),N'http:/',N'') as DlServer, dt.DlUserName, dt.DlPassword,dt.DlTime, " +
+                        $" replace(replace(replace(case when (dt.UpFileAddress is null or dt.UpFileAddress = N'' ) then  " +
+                        $" dt.UpServer else dt.UpServer + N'/' + dt.UpFileAddress end ,N'//',N'/'),N'https:/',N''),N'http:/',N'') as UpServer ,  dt.UpTime, dt.UpFileSize,dt.UpUserName,dt.UpPassword, " +
+                        $" dt.IPTypeId, dt.OTTServiceId, dt.OTTServiceTestId, dt.NetworkId, dt.BandId , dt.SaveLogFile, dt.LogFilePartitionTypeId, dt.LogFilePartitionTime, " +
+                        $" dt.LogFilePartitionSize, dt.LogFileHoldTime, dt.NumberOfPings, dt.PacketSize, dt.InternalTime, dt.ResponseWaitTime, dt.TTL,  DTM.SIM, " +                        
+                        $"            case when TesttypeId not in(4, 2) then testtypeid " +
+                        $"             when TestTypeId = 2 then '2' + cast(TestDataTypeId as nvarchar(10)) " +
+                        $"             when TestTypeId = 4 then '4' + " +
                         $"				case when testdataid in(3, 4) then cast(TestDataId as nvarchar(10)) " +
-                        $"                     else cast(TestDataId as nvarchar(10)) + cast(TestDataTypeId as nvarchar(10)) end end TestType " +
+                        $"                     else cast(TestDataId as nvarchar(10)) + cast(TestDataTypeId as nvarchar(10)) end end TestType, " +
+                        $" replace(CONVERT(varchar(26),DTM.BeginDate, 121),N':',N'-') BeginDate, " +
+                        $" replace(CONVERT(varchar(26),DTM.EndDate, 121),N':',N'-') EndDate " +
                         $"from Machine M " +
                         $"join DefinedTestMachine DTM on M.Id = DTM.MachineId " +
                         $"join DefinedTest DT on DTM.DefinedTestId = DT.id " +
-                        $"where DTM.IsActive = 1 and DTM.BeginDate > getdate() and " +
-                        $"DTM.IsActive = 1 and DTM.Status = 0 " +/*status = 0, not test*/
-                        $"and m.IMEI1 = @IMEI1 for json path";
+                        $"where" +
+                        $" DTM.IsActive = 1 and " +
+                        $" DTM.BeginDate > getdate() and " +
+                        $" DTM.Status = 0 " +/*status = 0, not test*/
+                        $" and m.IMEI1 = @IMEI1 for json path";
                     using (SqlCommand command = new SqlCommand(sql, connection))
                     {   
                         command.CommandTimeout = 100000;

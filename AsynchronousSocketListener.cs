@@ -97,7 +97,7 @@ namespace TCPServer
             }
         }
        public static async void AcceptCallback(IAsyncResult ar)
-        {
+       {
             try
             {
                 // Signal the main thread to continue.  
@@ -118,17 +118,17 @@ namespace TCPServer
                     try
                     {
                         state.Timer.Elapsed += (sender,ElapsedEventArgs) => clientTimerElapsed(state);                        
-                        state.IP = IPAddress.Parse(((IPEndPoint)client.RemoteEndPoint).Address.ToString()).ToString();
-                        
+                        state.IP = IPAddress.Parse(((IPEndPoint)client.RemoteEndPoint).Address.ToString()).ToString();                        
                         //Console.WriteLine($"\n Accept Socket Ip = {state.IP} @ {DateTime.Now.ToString("yyyy/M/d HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)} \n");
                         if (SocketConnected(client, 0))
                         {
-                            client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(BeginReceiveCallback), state);
+                            client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
+                                                 new AsyncCallback(BeginReceiveCallback), state);
                         }
                     }
                     catch (Exception e)
                     {
-                         _=Util.LogErrorAsync(e, e.Message.ToString(), state.IP).ConfigureAwait(false);
+                         _=Util.LogErrorAsync(e, "from AcceptCallback has Excetion ", state.IP ).ConfigureAwait(false);
                     }
                 }
             }
@@ -137,7 +137,7 @@ namespace TCPServer
                 Console.WriteLine(e.ToString());
                   _=Util.LogErrorAsync(e, "84 -- Method -- AcceptCallback").ConfigureAwait(false);
             }
-            }
+       }
 
         private static void clientTimerElapsed(StateObject state)
         {
@@ -153,7 +153,7 @@ namespace TCPServer
                 DateTime startTime = curClient.lastDateTimeConnected;
                 DateTime endTime = DateTime.Now;
                 TimeSpan span = endTime.Subtract(startTime);
-                if (span.Seconds >= 25 ) //بیش از بیست ثانیه است که دستگاه قطع می باشد
+                if (span.Seconds >= 25 ) //بیش از بیست و پنج ثانیه است که دستگاه قطع می باشد
                 {
                     //Console.WriteLine("span.seconds >= 25");
                     Task.Delay(10000);
@@ -191,57 +191,61 @@ namespace TCPServer
                             {  
                                 client.value = Encoding.ASCII.GetString(client.buffer, 0, bytesRead).ToString();                                
                                 _=Util.LogErrorAsync(new Exception($"Socekt ReadCallback IMEI1={client.IMEI1} and Ip={client.IP}"), (client.value ?? "").ToString(), client.IMEI1).ConfigureAwait(false);
-                                if (client.value.Length > 0)
-                                {
+                              //  if (client.value.Length > 0)
+                              //  {
                                     //await CheckPacket(client.value, client);
                                     _= CheckValue(client).ConfigureAwait(false);                                    
-                                }
-                                else
-                                {
+                               // }
+                               // else
+                               // {
                                     // Not all data received. Get more.                              
                                     if (SocketConnected(sk_client, 0))
                                     {
                                         Array.Clear(client.buffer, 0, client.buffer.Length);
-                                        sk_client.BeginReceive(client.buffer, 0, StateObject.BufferSize, SocketFlags.None
-                                            , new AsyncCallback(BeginReceiveCallback), client);
+                                        try
+                                        {
+                                            sk_client.BeginReceive(client.buffer, 0, StateObject.BufferSize, SocketFlags.None
+                                                , new AsyncCallback(BeginReceiveCallback), client);
+                                        }
+                                        catch(Exception ex)
+                                        {
+                                        _ = Util.LogErrorAsync(new Exception($"from BeginReceiveCallback has Exception --- IMEI1={client.IMEI1} and Ip={client.IP} and value ={client.value}"),
+                                                  $"state =>  {client.IsConnected}",
+                                                  $" last date => {client.lastDateTimeConnected}").ConfigureAwait(false);
+
+                                        //throw ex;   
                                     }
+
                                 }
+                              //  }
                             }
                         }
                     }
                 }
             }
         }
-        private static async Task CheckValue(StateObject client)
-        
+        private static async Task CheckValue(StateObject client)        
         {
             if (client.value.Contains("SHORU")) //has shoru
             {
                 if (client.value.Contains("PAYAN")) //has payan
                 {
-                    if (string.IsNullOrEmpty(client.tmpValue)) //tmp has not value
-                    {
-                        await ParseMsg(client.value, client).ConfigureAwait(false);
+                    //if (string.IsNullOrEmpty(client.tmpValue)) //tmp has not value
+                    //{
+                    //    await ParseMsg(client.value, client).ConfigureAwait(false);
                         //client.tmpValue = client.value = string.Empty;
-                    }
-                    else //tmp has value
-                    {
+                    //}
+                   // else //tmp has value
+                   // {                        
                         client.tmpValue = string.Empty;
                         await ParseMsg(client.value, client).ConfigureAwait(false);
-                    }
+                   // }
                 }
                 else //has not payan
                 {
-                    if (string.IsNullOrEmpty(client.tmpValue)) //tmp has not value
-                    {
+                    
                         client.tmpValue = client.value;
-                        client.value = string.Empty;
-                    }
-                    else  //tmp has value
-                    {
-                        client.tmpValue = client.value;
-                        client.value = string.Empty;
-                    }
+                        client.value = string.Empty;                    
                 }
             }
             else //has not shoru
@@ -377,14 +381,18 @@ namespace TCPServer
                             Array.Clear(stateObject.buffer, 0, stateObject.buffer.Length);
                             //stateObject.lastDateTimeConnected = DateTime.Now;
                             stateObject.counter += 1;//set for check connect
-                            //try
-                            //{
-                                socket.BeginReceive(stateObject.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(BeginReceiveCallback), stateObject);
-                            //}
-                            //catch (Exception ex)
-                            //{
-                            //     Util.LogErrorAsync(ex, $"SendCallback>> BeginReceive - IMEI = {stateObject.IMEI1} and Ip={stateObject.IP} @ {DateTime.Now} ").ConfigureAwait(false);
-                            //}
+                            try
+                            {
+                                //if (SocketConnected(socket, 0)) --not need
+
+                                    socket.BeginReceive(stateObject.buffer, 0, StateObject.BufferSize, 0,
+                                            new AsyncCallback(BeginReceiveCallback), stateObject);
+                            }
+                            catch (Exception ex)
+                            {
+                                _= Util.LogErrorAsync(ex, $"SendCallback >> BeginReceive - IMEI = {stateObject.IMEI1} and Ip={stateObject.IP} @ {DateTime.Now} ").ConfigureAwait(false);
+                                throw ex;
+                            }
                         }
                     //}
                     //catch (Exception ex)
