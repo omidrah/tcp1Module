@@ -26,7 +26,7 @@ namespace TCPServer
                 string body = text.Decrypt("sample_shared_secret", vikey);
                 _ = Util.LogErrorAsync(new Exception("Socekt ReadCallback"), (body ?? "").ToString(), state.IP);
                 string[] paramArray = body.Replace("\\", string.Empty).Replace("\"", string.Empty).Split('#');
-                
+
                 switch (paramArray[0])
                 {
                     case "MID":  //for register device and first connection to server --omid added
@@ -36,7 +36,7 @@ namespace TCPServer
                         _ = ProcessDeviceWantSync(state, paramArray).ConfigureAwait(false);
                         break;
                     case "TSC": //for communication and run task on device between device and server --omid added
-                       _ = ProcessTSCRecievedContent(state, paramArray).ConfigureAwait(false);
+                        _ = ProcessTSCRecievedContent(state, paramArray).ConfigureAwait(false);
                         break;
                     case "UPG": //Device Say that , its get Update message 
                         _ = ProcessUPGRecievedContent(state, paramArray).ConfigureAwait(false);
@@ -51,7 +51,7 @@ namespace TCPServer
                         ProcessLowBatteryDevice(state, paramArray);
                         break;
                     case "LOC": //for show Gps Device every 50 second ... --omid added 990220//هر پنجاه ثانیه یکبار جی پی اس از دستگاه دریافت میشود//addby omid
-                        
+
                         _ = ProcessLoCDevice(state, paramArray);
                         break;
                     case "FLD": //اگر زمان پایان یا شروغ تست درست تعریف نشده باشد این پیام دریافت میگردد که باید تست را تمام شده در نظرگرفت//addby omid
@@ -73,15 +73,15 @@ namespace TCPServer
                         _ = ProcessUSDSMS(state, paramArray).ConfigureAwait(false);
                         break;
                     case "YesI'mThere": //addby omid
-                        if(paramArray.Length > 1)
+                        if (paramArray.Length > 1)
                         {
                             DateTime.TryParse(paramArray[1].Substring(5, paramArray[1].Length - 5), out DateTime fromDevice);
                             _ = CheckHandShake(state, fromDevice).ConfigureAwait(false);
                         }
                         else
                         {
-                            _ = CheckHandShake(state,null).ConfigureAwait(false);
-                        }                        
+                            _ = CheckHandShake(state, null).ConfigureAwait(false);
+                        }
                         break;
                     default:
                         break;
@@ -94,7 +94,7 @@ namespace TCPServer
         }
         private static async Task ProcessDeviceWantSync(StateObject state, string[] paramArray)
         {
-            if (TcpSettings.Imei1Log == "All" ||  state.IMEI1 == TcpSettings.Imei1Log)
+            if (TcpSettings.Imei1Log == "All" || state.IMEI1 == TcpSettings.Imei1Log)
             {
                 Console.ForegroundColor = ConsoleColor.DarkGray;
                 Console.WriteLine($"*************************************");
@@ -102,7 +102,7 @@ namespace TCPServer
                 Console.WriteLine($"*************************************");
                 Console.ForegroundColor = ConsoleColor.Green;
             }
-             _=Util.SyncDevice(state);
+            _ = Util.SyncDevice(state);
         }
 
         /// <summary>
@@ -117,8 +117,8 @@ namespace TCPServer
         {
             try
             {
-                _ = LogErrorAsync(new Exception("update ussd"), string.Join("@",paramArray), $"Update Ussd -- 108 ").ConfigureAwait(false);
-                int.TryParse(paramArray[1].Split(":")[1],out int UsId);
+                _ = LogErrorAsync(new Exception("update ussd"), string.Join("@", paramArray), $"Update Ussd -- 108 ").ConfigureAwait(false);
+                int.TryParse(paramArray[1].Split(":")[1], out int UsId);
                 DateTime.TryParse(paramArray[3].Substring(5, paramArray[3].Length - 5), out DateTime Time);
                 using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
                 {
@@ -126,14 +126,14 @@ namespace TCPServer
                     try
                     {
                         //Update status of Uss record..Mean Device Get USS
-                        
-                        string sql = "Update MachineUssd set Status=2,DateFromDevice=@fromDevice where Id=@UsId ";                            
+
+                        string sql = "Update MachineUssd set Status=2,DateFromDevice=@fromDevice where Id=@UsId ";
                         using (SqlCommand command = new SqlCommand(sql, connection))
                         {
                             command.CommandTimeout = 100000;
-                            command.CommandType = CommandType.Text;                            
-                            command.Parameters.AddWithValue("@UsId", UsId); 
-                            command.Parameters.AddWithValue("@fromDevice",Time);
+                            command.CommandType = CommandType.Text;
+                            command.Parameters.AddWithValue("@UsId", UsId);
+                            command.Parameters.AddWithValue("@fromDevice", Time);
                             await command.ExecuteScalarAsync().ConfigureAwait(false);
                         }
                     }
@@ -144,7 +144,7 @@ namespace TCPServer
                     finally
                     {
                         connection.Close();
-                    }                    
+                    }
                 }
 
             }
@@ -162,8 +162,8 @@ namespace TCPServer
                 var UsdOrSms = paramArray[0];
                 if (UsdOrSms == "SMS")
                 {
-                    _=LogErrorAsync(new Exception("ProcessSMS"), String.Join("", paramArray), "ProcessSMS").ConfigureAwait(false);
-                    _=ProcessSMS(state, paramArray);
+                    _ = LogErrorAsync(new Exception("ProcessSMS"), String.Join("", paramArray), "ProcessSMS").ConfigureAwait(false);
+                    _ = ProcessSMS(state, paramArray);
                 }
                 else //usdorsms="USD"
                 {
@@ -189,18 +189,18 @@ namespace TCPServer
         internal static async Task TerminateTest(StateObject state)
         {
             string TerminateTest = "";
-            
+
             using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
                 try
                 {
                     string sql = $"SELECT * from TempTerminteTest ttt " +
-                        $" where ttt.machineId = (select id from machine where IMEI1 = @IMEI1) for json path";                                                
+                        $" where ttt.machineId = (select id from machine where IMEI1 = @IMEI1) for json path";
                     using (SqlCommand command = new SqlCommand(sql, connection))
                     {
                         command.CommandTimeout = 100000;
                         command.CommandType = CommandType.Text;
-                        command.Parameters.AddWithValue("@IMEI1",state.IMEI1); //state.IMEI1);
+                        command.Parameters.AddWithValue("@IMEI1", state.IMEI1); //state.IMEI1);
                         connection.Open();
                         TerminateTest = (string)await command.ExecuteScalarAsync().ConfigureAwait(false);
                     }
@@ -228,9 +228,9 @@ namespace TCPServer
                 {
                     var content = ("TRM#" + item.ToString().Replace("}", "").Replace(",", "#").
                         Replace("{", "")).Replace(" ", "").Replace("\r", "").Replace("\n", "").ToString().
-                        Encrypt("sample_shared_secret");                    
-                    AsynchronousSocketListener.Send(state.workSocket,TcpSettings.VIKey + " ," + content);
-                   // LogErrorAsync(new Exception("TRMSEND"), String.Join("", item), content).ConfigureAwait(false);
+                        Encrypt("sample_shared_secret");
+                    AsynchronousSocketListener.Send(state.workSocket, TcpSettings.VIKey + " ," + content);
+                    // LogErrorAsync(new Exception("TRMSEND"), String.Join("", item), content).ConfigureAwait(false);
                 }
             }
         }
@@ -271,20 +271,20 @@ namespace TCPServer
             int syncMasterId; int.TryParse(paramArray[1].Split(':')[1], out syncMasterId);
             await UpdateMasterDetailSync(state, syncMasterId, "SYE", true);
         }
-        private static async Task CheckHandShake(StateObject state,DateTime? fromDevice)
+        private static async Task CheckHandShake(StateObject state, DateTime? fromDevice)
         {
             //state.Timer.Stop();         
-                state.IsConnected = true;
-                //if (fromDevice!=null)
-                //{
-                //    state.lastDateTimeConnected = (DateTime)fromDevice;
-                //}
-                //else
-                //{
-                //    state.lastDateTimeConnected = DateTime.Now;
-                //}
-                state.lastDateTimeConnected = DateTime.Now;
-                state.counter = 0;
+            state.IsConnected = true;
+            //if (fromDevice!=null)
+            //{
+            //    state.lastDateTimeConnected = (DateTime)fromDevice;
+            //}
+            //else
+            //{
+            //    state.lastDateTimeConnected = DateTime.Now;
+            //}
+            state.lastDateTimeConnected = DateTime.Now;
+            state.counter = 0;
             //state.Timer.Start();
             await UpdateMachineState(state.IMEI1, state.IMEI2, true).ConfigureAwait(false);
         }
@@ -295,14 +295,14 @@ namespace TCPServer
         }
         private async static Task SyncDevice(StateObject state)
         {
-            if (TcpSettings.Imei1Log=="All" || state.IMEI1 ==TcpSettings.Imei1Log )
+            if (TcpSettings.Imei1Log == "All" || state.IMEI1 == TcpSettings.Imei1Log)
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.WriteLine($"*************************************");
                 Console.WriteLine($"Sync Time IMEI1 ={state.IMEI1} IP={state.IP}");
                 Console.WriteLine($"*************************************");
                 Console.ForegroundColor = ConsoleColor.Green;
-            }           
+            }
             try
             {
                 await AddSync(state).ConfigureAwait(false);
@@ -417,7 +417,7 @@ namespace TCPServer
                         command0.Transaction = tx;
                         command0.Parameters.AddWithValue("@IMEI1", state.IMEI1);
                         var selectedMachine = await command0.ExecuteReaderAsync().ConfigureAwait(false);
-                        int machineId=0; string timeZone=string.Empty;
+                        int machineId = 0; string timeZone = string.Empty;
                         if (selectedMachine.Read())
                         {
                             int.TryParse(selectedMachine["id"].ToString(), out machineId);
@@ -465,7 +465,7 @@ namespace TCPServer
                                         command3.Parameters.AddWithValue("@status", 1);
                                         await command3.ExecuteScalarAsync().ConfigureAwait(false);
                                         tx.Commit();
-                                        var msg = ($"SYN#\"SId\":{syncMasterId}#\"Rest\":\"{TcpSettings.Rest}\"#\"TimeZone\":\"{timeZone}\"#");                                       
+                                        var msg = ($"SYN#\"SId\":{syncMasterId}#\"Rest\":\"{TcpSettings.Rest}\"#\"TimeZone\":\"{timeZone}\"#");
                                         var content = msg.Encrypt("sample_shared_secret");
                                         AsynchronousSocketListener.Send(state.workSocket, TcpSettings.VIKey + " ," + content);
                                         if (TcpSettings.Imei1Log == "All" || state.IMEI1 == TcpSettings.Imei1Log)
@@ -634,9 +634,9 @@ namespace TCPServer
                     }
                     if (!string.IsNullOrEmpty(msg))// if uss exist
                     {
-                        
-                        var content = msg.Encrypt("sample_shared_secret");                        
-                        AsynchronousSocketListener.Send(state.workSocket,TcpSettings.VIKey + " ," + content);
+
+                        var content = msg.Encrypt("sample_shared_secret");
+                        AsynchronousSocketListener.Send(state.workSocket, TcpSettings.VIKey + " ," + content);
                         if (TcpSettings.Imei1Log == "All" || state.IMEI1 == TcpSettings.Imei1Log)
                         {
                             Console.ForegroundColor = ConsoleColor.Yellow;
@@ -794,14 +794,14 @@ namespace TCPServer
                     {
                         Console.ForegroundColor = ConsoleColor.DarkGray;
                         Console.WriteLine($"*************************************");
-                        Console.WriteLine($"Get LOC From IMEI1 ={state.IMEI1} serverLocalTime = @{DateTime.Now} serverUtcTime= @{DateTime.UtcNow}");                        
+                        Console.WriteLine($"Get LOC From IMEI1 ={state.IMEI1} serverLocalTime = @{DateTime.Now} serverUtcTime= @{DateTime.UtcNow}");
                         Console.WriteLine($"*************************************");
                         Console.ForegroundColor = ConsoleColor.Green;
                     }
 
-                    if (paramArray[5].Split(':')[1] != ",,,,,,,,")
+                    if (paramArray[7].Split(':')[1] != ",,,,,,,,")
                     {
-                        var gpsTmp = paramArray[5].Split(':')[1];
+                        var gpsTmp = paramArray[7].Split(':')[1];
                         var gpsData = gpsTmp.Split(',');
                         //var timeFromGPGGA = gpsData[1];
                         var latFromGPGGA = gpsData[2];
@@ -909,7 +909,7 @@ namespace TCPServer
                                         command.Parameters.AddWithValue("@UpdateResult", UpdateResult);
                                         command.Parameters.AddWithValue("@CompleteDate", DateTime.Now);
                                         connection.Open();
-                                        await command.ExecuteScalarAsync().ConfigureAwait(false);                                        
+                                        await command.ExecuteScalarAsync().ConfigureAwait(false);
                                     }
                                 }
                                 catch (Exception ex)
@@ -954,7 +954,7 @@ namespace TCPServer
                         {
                             using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
                             {
-                                
+
                                 try
                                 {
                                     string sql = $"INSERT MachineVersionDetail (VersionId,State,CreateDate,Sender,Reciever) VALUES" +
@@ -1011,7 +1011,7 @@ namespace TCPServer
                                             //if (AsynchronousSocketListener.SocketConnected(stateobject))
                                             //{
                                             await command.ExecuteScalarAsync().ConfigureAwait(false);
-                                            AsynchronousSocketListener.Send(stateobject.workSocket,TcpSettings.VIKey + " ," + content);
+                                            AsynchronousSocketListener.Send(stateobject.workSocket, TcpSettings.VIKey + " ," + content);
                                             if (TcpSettings.Imei1Log == "All" || stateobject.IMEI1 == TcpSettings.Imei1Log)
                                             {
                                                 Console.ForegroundColor = ConsoleColor.Yellow;
@@ -1052,8 +1052,8 @@ namespace TCPServer
                                             //if (AsynchronousSocketListener.SocketConnected(stateobject))
                                             //{
                                             await command.ExecuteScalarAsync().ConfigureAwait(false);
-                                            AsynchronousSocketListener.Send(stateobject.workSocket,TcpSettings.VIKey + " ," + content);
-                                            if (TcpSettings.Imei1Log == "All"  || stateobject.IMEI1 == TcpSettings.Imei1Log)
+                                            AsynchronousSocketListener.Send(stateobject.workSocket, TcpSettings.VIKey + " ," + content);
+                                            if (TcpSettings.Imei1Log == "All" || stateobject.IMEI1 == TcpSettings.Imei1Log)
                                             {
                                                 Console.ForegroundColor = ConsoleColor.Yellow;
                                                 Console.WriteLine($"*************************************");
@@ -1097,12 +1097,12 @@ namespace TCPServer
         /// <param name="FileSize">Filesize should be Convert to byte</param>
         /// <returns></returns>
         private static async Task<bool> CheckFileSizeAndFileName(int VersionId, string FileSize)
-        {            
+        {
             long.TryParse(FileSize.Split(':')[1], out long sFileDownload);
             bool result = false;
             using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
-                int? SelectedVersion=0;
+                int? SelectedVersion = 0;
                 try
                 {
                     string sql = $"SELECT FileSize from MachineVersion where Id = @Id ";
@@ -1113,16 +1113,16 @@ namespace TCPServer
                         command.CommandType = CommandType.Text;
                         command.Parameters.AddWithValue("@Id", VersionId);
                         connection.Open();
-                        SelectedVersion = (int?)await command.ExecuteScalarAsync().ConfigureAwait(false);                        
+                        SelectedVersion = (int?)await command.ExecuteScalarAsync().ConfigureAwait(false);
                         if (SelectedVersion == sFileDownload)
-                        {                            
-                                result = true;                         
-                        }                        
+                        {
+                            result = true;
+                        }
                     }
                 }
                 catch (Exception ex)
                 {
-                    _ = LogErrorAsync(ex, "362 -Method-- CheckFileSize",$"FileSizeFromDevice>>{ FileSize} ,SizeFromDb>>{ SelectedVersion}");
+                    _ = LogErrorAsync(ex, "362 -Method-- CheckFileSize", $"FileSizeFromDevice>>{ FileSize} ,SizeFromDb>>{ SelectedVersion}");
                 }
                 finally
                 {
@@ -1142,7 +1142,7 @@ namespace TCPServer
         /// <returns></returns>
         public static async Task<byte[]> DownloadFile(string url)
         {
-            using (var client = new HttpClient(TcpSettings._handler) { Timeout= TimeSpan.MaxValue})
+            using (var client = new HttpClient(TcpSettings._handler) { Timeout = TimeSpan.MaxValue })
             {
                 //url recieve from db do not has Http/Https Protocol 
                 //url = string.Format("http{0}://{1}",, url); //supporting http and https 
@@ -1154,7 +1154,7 @@ namespace TCPServer
                 }
                 else
                 {
-                    using var  result2 = await client.GetAsync($"https://{url}");
+                    using var result2 = await client.GetAsync($"https://{url}");
                     if (result2.IsSuccessStatusCode)
                     {
                         return await result2.Content.ReadAsByteArrayAsync();
@@ -1197,7 +1197,7 @@ namespace TCPServer
                                         command.Parameters.AddWithValue("@Reciever", "Server");
                                         connection.Open();
                                         await command.ExecuteScalarAsync().ConfigureAwait(false);
-                                        if (TcpSettings.Imei1Log == "All"  ||stateobject.IMEI1 == TcpSettings.Imei1Log)
+                                        if (TcpSettings.Imei1Log == "All" || stateobject.IMEI1 == TcpSettings.Imei1Log)
                                         {
                                             Console.ForegroundColor = ConsoleColor.Yellow;
                                             Console.WriteLine($"*************************************");
@@ -1246,19 +1246,19 @@ namespace TCPServer
                 }
                 if (paramArray.Length > 3)
                 {
-                    if(!string.IsNullOrEmpty(Array.Find(paramArray, element => element.Contains("TerminateTest:TRUE")))) //finish Time for abort test
+                    if (!string.IsNullOrEmpty(Array.Find(paramArray, element => element.Contains("TerminateTest:TRUE")))) //finish Time for abort test
                     {
                         await UpdateMachineTestStatusToFinish(state, paramArray[1].Split(':')[1]).ConfigureAwait(false);
                     }
                     if (!string.IsNullOrEmpty(Array.Find(paramArray, element => element.Contains("EndTest:TRUE")))) //finish Time for Normal test 
-                        //if (paramArray[4].Contains("EndTest:TRUE")) //finishTime for Normal finish test
+                                                                                                                    //if (paramArray[4].Contains("EndTest:TRUE")) //finishTime for Normal finish test
                     {
                         await UpdateMachineTestStatusToFinish(state, paramArray[1].Split(':')[1]).ConfigureAwait(false);
                     }
                     else
                     {
-                        string createDate = string.Empty;                        
-                        
+                        string createDate = string.Empty;
+
                         int TestId = 0; //omid added --981121                        
                         string inseretStatment = "insert into TestResult(";
                         string valueStatmenet = "Values(";
@@ -1278,7 +1278,7 @@ namespace TCPServer
                                             double lat = 0;
                                             //omid updated--98-11-28 , for nan value GPS
                                             if (!string.IsNullOrEmpty(t[1]) && t[1].ToLower() != "nan")
-                                            {                                                
+                                            {
                                                 //update machine location-- omid 99-01-04
                                                 //10 Testresult will come together but only 1 Update Machine State Insert
                                                 //if (!cnt)  //Dr.vahidPout 990230- all TestResult Update Machine State //990612--update machine location
@@ -1289,9 +1289,9 @@ namespace TCPServer
                                                 //   cnt = true;
                                                 //}
                                                 //add gps new format 990728
-                                                if (t[1].Split(',') !=null)
+                                                if (t[1].Split(',') != null)
                                                 {
-                                                    
+
                                                     var gpsData = t[1].Split(',');
                                                     //var timeFromGPGGA = gpsData[1];
                                                     var latFromGPGGA = gpsData[2];
@@ -1335,52 +1335,61 @@ namespace TCPServer
                                         else if (t[0].Equals("Ping"))
                                         {
                                             var pingResult = t[1].Split(',');
-                                            inseretStatment = inseretStatment + " NumOfPacketSent , NumOfPacketReceived, NumOfPacketLost, Ping, Rtt, MinRtt,AvgRtt,MaxRtt,mdev,  ";
-                                            valueStatmenet = valueStatmenet + pingResult[0].Split(' ')[0] + " , " + pingResult[1].Split(' ')[1] + " , " + pingResult[2].Split('%')[0].Split(' ')[1] + " , 'Ping' ," +
-                                                pingResult[3].Split('=')[0].Split(' ')[2].Split('m')[0] + " , " + pingResult[3].Split('=')[1].Split('/')[0] + " , " +
-                                                pingResult[3].Split('=')[1].Split('/')[1] + " , " + pingResult[3].Split('=')[1].Split('/')[2] + " , " + pingResult[3].Split('=')[1].Split('/')[3].Split(' ')[0] + " ,";
+                                            if (pingResult.Length == 1)
+                                            {
+                                                inseretStatment += "Ping,";
+                                                valueStatmenet += $"'{t[1]}',";
+                                            }
+                                            else
+                                            {
+                                                inseretStatment += " NumOfPacketSent , NumOfPacketReceived, NumOfPacketLost, Ping, Rtt, MinRtt,AvgRtt,MaxRtt,mdev,";
+                                                valueStatmenet += pingResult[0].Split(' ')[0] + " , " + pingResult[1].Split(' ')[1] + " , " + pingResult[2].Split('%')[0].Split(' ')[1] + " , 'Ping' ," +
+                                                    pingResult[3].Split('=')[0].Split(' ')[2].Split('m')[0] + " , " + pingResult[3].Split('=')[1].Split('/')[0] + " , " +
+                                                    pingResult[3].Split('=')[1].Split('/')[1] + " , " + pingResult[3].Split('=')[1].Split('/')[2] + " , " + pingResult[3].Split('=')[1].Split('/')[3].Split(' ')[0] + " ,";
+                                            }
                                         }
                                         else if (t[0].Equals("TraceRoute"))
                                         {
-                                            inseretStatment = inseretStatment + "TraceRoute,hop1,hop1_rtt,hop2,hop2_rtt,hop3,hop3_rtt,hop4,hop4_rtt,hop5,hop5_rtt,hop6,hop6_rtt,hop7,hop7_rtt,hop8,hop8_rtt,hop9,hop9_rtt,hop10,hop10_rtt, ";
-
-                                            var traceRtResponse = t[1].Split(',');
-                                            var des = traceRtResponse[0];//destination
-                                            valueStatmenet = valueStatmenet + $"'{des}' , ";
+                                            
+                                             _= TraceRoute(inseretStatment, valueStatmenet, t,TestId,createDate,state);
+                                            //var traceRtResponse = t[1].Replace("\n","").Split(',');
+                                            //var des = traceRtResponse[0];//destination
+                                            //valueStatmenet +=  $"'{des}',";
 
                                             //var hops = traceRtResponse[2].Split(new[] { "\n", "\r", "\n\r" }, StringSplitOptions.None);
-                                            for (int j = 1; j <= 10; j++)
-                                            {
-                                                var Jindex = traceRtResponse[2].IndexOf($" {j} ");
-                                                var Xindex = traceRtResponse[2].IndexOf($" {j + 1} ");
-                                                string[] Jhop;
-                                                if (Xindex == -1) //end of hops
-                                                {
-                                                    Jhop = traceRtResponse[2].Substring(Jindex).Split(' ');
-                                                }
-                                                else
-                                                {
-                                                    Jhop = traceRtResponse[2].Substring(Jindex, Xindex - Jindex).Split(' ');
-                                                }
-                                                if (Jhop[3] == "*")   //hop rtt
-                                                {
-                                                    valueStatmenet += "'" + Jhop[3] + "', " + System.Data.SqlTypes.SqlDouble.Null + " , ";
-                                                }
-                                                else
-                                                {
-                                                    valueStatmenet += "'" + Jhop[3] + "', " + Convert.ToDouble(Jhop[6]) + " , ";
-                                                }
-                                            }
-                                        }                                      
+                                            //for (int j = 1; j <= 10; j++)
+                                            //{
+                                            //    var Jindex = traceRtResponse[2].IndexOf($"{j}");
+                                            //    var Xindex = traceRtResponse[2].IndexOf($"{j + 1}");
+                                            //    string[] Jhop;                                                
+                                            //        if (Xindex == -1) //end of hops
+                                            //        {
+                                            //            Jhop = traceRtResponse[2].Substring(Jindex).Split(' ');
+                                            //        }
+                                            //        else
+                                            //        {
+                                            //            Jhop = traceRtResponse[2].Substring(Jindex, Xindex - Jindex).Split(' ');
+                                            //        }
+                                            //        if (Jhop[3] == "*" || Jhop[3] == "*\n")   //hop rtt
+                                            //        {
+                                            //            valueStatmenet += "'" + Jhop[3] + "', " + System.Data.SqlTypes.SqlDouble.Null + " , ";
+                                            //        }
+                                            //        else
+                                            //        {
+                                            //            valueStatmenet += "'" + Jhop[3] + "', " + Convert.ToDouble(Jhop[6]) + " , ";
+                                            //        }
+
+                                            //}
+                                        }
                                         else
                                         {
                                             if (t[0] == "CreateDate")
                                             {
                                                 createDate = t[1].ToString();
-                                            }                                            
+                                            }
                                             inseretStatment = inseretStatment + t[0] + " ,";
                                             valueStatmenet = valueStatmenet +
-                                                (int.TryParse(t[1].Replace("dBm",""), out i) || t[1].Contains("0x") ? i.ToString() : t[1]=="NuNu" ?"null": "'"+ t[1].Replace("dBm","")  + "'") + " ,";
+                                                (int.TryParse(t[1].Replace("dBm", ""), out i) || t[1].Contains("0x") ? i.ToString() : t[1] == "NuNu" ? "null" : "'" + t[1].Replace("dBm", "") + "'") + " ,";
                                         }
 
                                     }
@@ -1412,31 +1421,121 @@ namespace TCPServer
                                 }
                             }
                         }
-                        var ExtraParam = await _GetParameterbyTestReultId(TestId,createDate); // omid added -- 98 11 21
-                        await InsertTestResult(inseretStatment + " CreateDateFa, MachineId, MachineName, DefinedTestId, DefinedTestName,SelectedSim,BeginDateTest,EndDateTest ) " + valueStatmenet +
-                                             $" cast([dbo].[CalculatePersianDate]('{createDate}')as nvarchar(max)) + N' '+cast(convert(time(0),'{createDate.Split(' ')[1]}') as nvarchar(max)),"
-                                                                                + ExtraParam[1] + ", '" + ExtraParam[5] + "' ," + ExtraParam[0] + ",'" + ExtraParam[6] + "'," + ExtraParam[2] + ", '" + ExtraParam[3] + "' , '" + ExtraParam[4] + "' )", state);
+                        //var ExtraParam = await _GetParameterbyTestReultId(TestId,createDate); // omid added -- 98 11 21 ,99106 remove Method                        
+                        await InsertTestResult($"{inseretStatment} RegisterDate) {valueStatmenet} '{DateTime.Now.ToString()}' )", TestId, createDate, state);
                     }
                 }
             }
             catch (Exception ex)
             {
-                _ = LogErrorAsync(ex, "593 --Method-- ProcessTSCRecievedContent", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
+                _ = LogErrorAsync(ex, "1431 --Method-- ProcessTSCRecievedContent", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
             }
         }
-        private static async Task InsertTestResult(string testResult, StateObject state)
+        /// <summary>
+        /// /// In TraceRoute , because mutil traceRoute response Received from device in one Test 
+        /// use insert multi row in one sql query 
+        /// </summary>
+        /// <param name="insertStatment">Insert value</param>
+        /// <param name="valueStatmenet">value of field</param>
+        /// <param name="t">traceroute params</param>
+        /// <param name="TestId">Id of Test</param>
+        /// <param name="CreateDate">Date From Device</param>
+        /// <param name="state"></param>
+        /// <returns></returns>
+        private static async Task TraceRoute(string insertStatment, string valueStatmenet, string[] t,int TestId,string CreateDate,StateObject state)
+        {
+            valueStatmenet =  valueStatmenet.Replace("Values", "");
+            insertStatment += "TraceRoute,hop1,hop1_rtt,hop2,hop2_rtt,hop3,hop3_rtt,hop4,hop4_rtt,hop5,hop5_rtt,hop6,hop6_rtt,hop7,hop7_rtt,hop8,hop8_rtt,hop9,hop9_rtt,hop10,hop10_rtt,RegisterDate) values ";
+            var dd = System.Text.RegularExpressions.Regex.Split(t[1], "traceroute");
+            string tmpValue, finalvalue=string.Empty;
+            for (int ii = 1; ii < dd.Length; ii++)
+            {
+                var curTr = dd[ii].Split('\n');
+                //inseretStatment += "TraceRoute,";
+                tmpValue = valueStatmenet +  $"'{curTr[0]}',";
+                for (int j = 1; j < curTr.Length - 1; j++)
+                {
+                    //inseretStatment += $"hop{j},hop{j}_rtt,";
+                    var vals = curTr[j].Split(' ');
+                    if (curTr[j].Contains("*"))
+                    {
+                        tmpValue += $"'{vals[3]}',{System.Data.SqlTypes.SqlDouble.Null},";
+                    }
+                    else
+                    {
+                        if (j == 10)
+                        {
+                            tmpValue += $"'{vals[2]}',{ Convert.ToDouble(vals[5])},'{DateTime.Now.ToString()}')";
+                            if (ii == dd.Length - 1)
+                            {
+                                finalvalue += tmpValue;
+                            }
+                            else
+                            {
+                                finalvalue += tmpValue + ",";
+                            }
+                        }
+                        else
+                        {
+                            tmpValue += $"'{vals[3]}',{ Convert.ToDouble(vals[6])},";
+                        }
+                    }
+
+                }
+
+            }
+            try
+            {
+                await InsertTestResult($"{insertStatment} {finalvalue} ", TestId, CreateDate, state);
+            }
+            catch(Exception ex)
+            {
+                _ = LogErrorAsync(ex, "193 --Method-- TraceRoute", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
+            }
+        }
+        
+        private static async Task InsertTestResult(string testResult, int TestId, string createDate, StateObject state)
         {
             try
             {
                 using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
                 {
+                    connection.Open();
+                    var tx = connection.BeginTransaction();
                     string sql = testResult;
-                    using (SqlCommand command = new SqlCommand(sql, connection))
+                    SqlCommand command = new SqlCommand(sql, connection);
+                    command.CommandTimeout = 100000;
+                    command.CommandType = CommandType.Text;
+                    command.Transaction = tx;
+                    try
                     {
-                        command.CommandTimeout = 100000;
-                        command.CommandType = CommandType.Text;
-                        connection.Open();
                         await command.ExecuteNonQueryAsync().ConfigureAwait(false);
+                        sql = $" update machine set LastTestResult = @createDate where id = (select MachineId from DefinedTestMachine where id =@TestId)";
+                        var com2 = new SqlCommand(sql, connection);
+                        com2.CommandTimeout = 100000;
+                        com2.CommandType = CommandType.Text;
+                        com2.Transaction = tx;
+                        com2.Parameters.AddWithValue("@createDate", DateTime.TryParse(createDate, out DateTime fromDevice) ? fromDevice : DateTime.Now);
+                        com2.Parameters.AddWithValue("@TestId", TestId);
+                        try
+                        {
+                            await com2.ExecuteScalarAsync().ConfigureAwait(false);
+                            tx.Commit();
+                        }
+                        catch (Exception ex)
+                        {
+                            _ = LogErrorAsync(ex, "1455 -- Method -- Trans in Update lastTestResult in machine");
+                            tx.Rollback();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _ = LogErrorAsync(ex, "1461 -- Method -- Insert TestResult ");
+                        tx.Rollback();
+                    }
+                    finally
+                    {
+                        connection.Close();
                     }
                 }
             }
@@ -1445,74 +1544,6 @@ namespace TCPServer
                 _ = LogErrorAsync(ex, "615 --Method-- insertTestResult", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
             }
         }
-        /// <summary>
-        /// فراخوانی پارامترهای موردنیاز در گزارش
-        /// omidAdd981121
-        /// </summary>
-        /// <param name="TestId">DefinedTestMachineId</param>
-        /// <returns></returns>
-        private static async Task<string[]> _GetParameterbyTestReultId(int TestId,string createDate)
-        {
-            var res = new string[7];
-            using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
-            {
-                connection.Open();
-                var tx = connection.BeginTransaction();
-                try
-                {
-                    var sql = $" select  dtm.DefinedTestId , dtm.MachineId ,dtm.SIM ,dtm.BeginDate , dtm.EndDate , m.Name, dt.Title" +
-                                 $" from DefinedTestMachine as dtm" +
-                                 $" left join Machine as m on dtm.MachineId = m.Id" +
-                                 $" left join DefinedTest as dt on dtm.DefinedTestId = dt.id" +
-                                 $" where dtm.id = {TestId}";                                 
-                    var com2 = new SqlCommand(sql, connection);
-                    com2.CommandTimeout = 100000;
-                    com2.Transaction = tx;
-                    var reader = await com2.ExecuteReaderAsync().ConfigureAwait(false);
-                    if (reader.Read())
-                    {                        
-                        res[0] = reader["DefinedTestId"].ToString();
-                        res[1] = reader["MachineId"].ToString();
-                        res[2] = reader["SIM"].ToString();
-                        res[3] = reader["BeginDate"].ToString();
-                        res[4] = reader["EndDate"].ToString();
-                        res[5] = reader["Name"].ToString();  // machine name
-                        res[6] = reader["Title"].ToString(); // Test name
-                    }
-                    reader.Close();
-                    //update lastTestResult in  machine Table ==> 991002
-                    try
-                    {
-                        sql = $" update machine set LastTestResult = @createDate where id = {res[1]}";
-                        var com3 = new SqlCommand(sql, connection);
-                        com3.CommandTimeout = 100000;
-                        com3.CommandType = CommandType.Text;
-                        com3.Transaction = tx;
-                        DateTime.TryParse(createDate, out DateTime fromDevice);
-                        com3.Parameters.AddWithValue("@createDate",fromDevice );
-                        await com3.ExecuteScalarAsync().ConfigureAwait(false);                        
-                        tx.Commit();                   
-                    }
-                    catch (Exception ex)
-                    {
-                        _ = LogErrorAsync(ex, "1299 -- Method -- Trans in Update lastTestResult in machine");
-                        tx.Rollback();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _ = LogErrorAsync(ex, "1509 -- Method -- _GetParameterbyTestReultId");
-                    tx.Rollback();
-                }
-                    
-                finally
-                {
-                    connection.Close();
-                }
-            }
-            return res;
-        }
-
         private static string[] ProcessTSCParams(string param)
         {
             if (param.Contains(":"))
@@ -1546,7 +1577,7 @@ namespace TCPServer
                         return new string[] { "BSIC", param.Split(":")[1] };
                     case "FrequencyBand": //omid updated
                         return new string[] { "FregBand", param.Split(":")[1] };
-                     //انجام شد ولی ماند برای بعد از ساماندهی دیتابیس
+                    //انجام شد ولی ماند برای بعد از ساماندهی دیتابیس
                     ////ToDo:omid:add OpMode 990629
                     //case "OPMode":
                     //    return new string[] { "OPMode", param.Split(":")[1] };
@@ -1560,7 +1591,7 @@ namespace TCPServer
                         int cidValue;
                         if (int.TryParse(param.Split(":")[1], out cidValue))
                         {
-                            if (cidValue == -1 || cidValue == 0 ) //مقدار غیر صحیح
+                            if (cidValue == -1 || cidValue == 0) //مقدار غیر صحیح
                                 return new string[] { "CID", "NuNu" };
                             else
                                 return new string[] { "CID", cidValue.ToString() };
@@ -1581,10 +1612,11 @@ namespace TCPServer
                         }
                         else
                         {
-                            if (int.TryParse(param.Split(":")[1], out resL)){
+                            if (int.TryParse(param.Split(":")[1], out resL))
+                            {
                                 return new string[] { "LAC", resL.ToString() };
                             }
-                        }                        
+                        }
                         return new string[] { "LAC", "NuNu" };
                     case "ULBW":
                         return new string[] { "ULBW", param.Split(":")[1] };
@@ -1611,7 +1643,7 @@ namespace TCPServer
                         }
                         else
                         {
-                            if(int.TryParse(param.Split(":")[1], out res))
+                            if (int.TryParse(param.Split(":")[1], out res))
                             {
                                 return new string[] { "TAC", res.ToString() };
                             }
@@ -1630,10 +1662,23 @@ namespace TCPServer
                         return new string[] { "RSCP", tmpVal.ToString() };
                     case "RSRP":
                         float.TryParse(param.Split(":")[1], out tmpVal); tmpVal /= 10;//addeddby-omid-981227
-                        if(tmpVal > 0 ){
+                        if (tmpVal > 0)
+                        {
                             return new string[] { "RSRP", "NuNu" };   //add in 990905.drvahidpour said 
                         }
                         return new string[] { "RSRP", tmpVal.ToString() };
+                    case "TXSPEED":
+                        if (float.TryParse(param.Split(":")[1], out tmpVal))
+                        {
+                            return new string[] { "TXSPEED", tmpVal.ToString() };
+                        }
+                        return new string[] { "TXSPEED", "NuNu" };
+                    case "RXSPEED":
+                        if (float.TryParse(param.Split(":")[1], out tmpVal))
+                        {
+                            return new string[] { "RXSPEED", tmpVal.ToString() };
+                        }
+                        return new string[] { "RXSPEED", "NuNu" };
                     case "RSSI":
                         float.TryParse(param.Split(":")[1], out tmpVal); tmpVal /= 10;//addeddby-omid-981229
                         return new string[] { "RSSI", tmpVal.ToString() };
@@ -1643,7 +1688,7 @@ namespace TCPServer
                         return new string[] { "RXQual", param.Split(":")[1] };
                     case "SYSMODE":  //1:2G , 4:3G, 8:4G
                         int sysmode;
-                        if (int.TryParse(param.Split(":")[1], out  sysmode))
+                        if (int.TryParse(param.Split(":")[1], out sysmode))
                         {
                             return new string[] { "SystemMode", sysmode.ToString() };
                         }
@@ -1783,7 +1828,7 @@ namespace TCPServer
                             {
                                 connection.Open();
                                 await command.ExecuteNonQueryAsync().ConfigureAwait(false);
-                                _=UpdatePreviousTestFinishTime(state, testId).ConfigureAwait(false);
+                                _ = UpdatePreviousTestFinishTime(state, testId).ConfigureAwait(false);
                             }
                             catch (Exception ex)
                             {
@@ -1910,22 +1955,22 @@ namespace TCPServer
                         var elem = Array.Find(paramArray, element => element.Contains("FWVer"));
                         if (!string.IsNullOrEmpty(elem)) //version Exist
                         {
-                            _ = Util.UpdateMachineStateByVersion(state.IMEI1, state.IMEI2, true,elem.Split(":")[1]);
+                            _ = Util.UpdateMachineStateByVersion(state.IMEI1, state.IMEI2, true, elem.Split(":")[1]);
                         }
                     }
                     else //Version Don't Exist
                     {
                         _ = Util.UpdateMachineState(state.IMEI1, state.IMEI2, true);
                     }
-                    if (TcpSettings.Imei1Log =="All" || state.IMEI1 == TcpSettings.Imei1Log)
+                    if (TcpSettings.Imei1Log == "All" || state.IMEI1 == TcpSettings.Imei1Log)
                     {
                         Console.ForegroundColor = ConsoleColor.Cyan;
                         Console.WriteLine($"*************************************");
                         Console.WriteLine($"Get MID FRom IMEI1={ state.IMEI1} IP={state.IP}");
                         Console.WriteLine($"*************************************");
-                        Console.ForegroundColor = ConsoleColor.Green;    
+                        Console.ForegroundColor = ConsoleColor.Green;
                     }
-                   // _ = Util.SyncDevice(state);
+                    // _ = Util.SyncDevice(state);
                 }
 
             }
@@ -1961,7 +2006,7 @@ namespace TCPServer
         }
         internal static async Task SendWaitingGroupTest(StateObject stateObject)
         {
-            string definedTest = "";            
+            string definedTest = "";
             using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
                 try
@@ -2019,7 +2064,7 @@ namespace TCPServer
         }
         internal static async Task SendWaitingTest(StateObject stateObject)
         {
-            string definedTest = "";            
+            string definedTest = "";
             using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
                 try
@@ -2031,7 +2076,7 @@ namespace TCPServer
                         $" replace(replace(replace(case when (dt.UpFileAddress is null or dt.UpFileAddress = N'' ) then  " +
                         $" dt.UpServer else dt.UpServer + N'/' + dt.UpFileAddress end ,N'//',N'/'),N'https:/',N''),N'http:/',N'') as UpServer ,  dt.UpTime, dt.UpFileSize,dt.UpUserName,dt.UpPassword, " +
                         $" dt.IPTypeId, dt.OTTServiceId, dt.OTTServiceTestId, dt.NetworkId, dt.BandId , dt.SaveLogFile, dt.LogFilePartitionTypeId, dt.LogFilePartitionTime, " +
-                        $" dt.LogFilePartitionSize, dt.LogFileHoldTime, dt.NumberOfPings, dt.PacketSize, dt.InternalTime, dt.ResponseWaitTime, dt.TTL,  DTM.SIM, " +                        
+                        $" dt.LogFilePartitionSize, dt.LogFileHoldTime, dt.NumberOfPings, dt.PacketSize, dt.InternalTime, dt.ResponseWaitTime, dt.TTL,  DTM.SIM, " +
                         $"            case when TesttypeId not in(4, 2) then testtypeid " +
                         $"             when TestTypeId = 2 then '2' + cast(TestDataTypeId as nvarchar(10)) " +
                         $"             when TestTypeId = 4 then '4' + " +
@@ -2048,7 +2093,7 @@ namespace TCPServer
                         $" DTM.Status = 0 " +/*status = 0, not test*/
                         $" and m.IMEI1 = @IMEI1 for json path";
                     using (SqlCommand command = new SqlCommand(sql, connection))
-                    {   
+                    {
                         command.CommandTimeout = 100000;
                         command.CommandType = CommandType.Text;
                         command.Parameters.AddWithValue("@l3MessHost", TcpSettings.l3Host);
@@ -2076,14 +2121,14 @@ namespace TCPServer
                     if (AsynchronousSocketListener.SendedTest.Find(t => t.Contains(content)) == null)
                     {
                         AsynchronousSocketListener.Send(stateObject.workSocket, TcpSettings.VIKey + " ," + content);
-                        LogErrorAsync(new Exception("Send Test"),content,string.Join("-",item));
+                        _ = LogErrorAsync(new Exception("Send Test"), content, string.Join("-", item));
                     }
                 }
             }
         }
         internal static async Task UpdateVersion(StateObject stateObject)
         {
-            string newUpdate = "";            
+            string newUpdate = "";
             using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
                 try
@@ -2123,7 +2168,7 @@ namespace TCPServer
                         try
                         {
                             //دستور آپدیت دستگاه با آدرس فایل مورد نظردر سرور
-                            var content = ("UPD#\"VID\":" + curReq[0]["Id"] + "#\"TestDataServer\":" + "\"" + curReq[0]["FileDownloadAddress"]+ "\"")
+                            var content = ("UPD#\"VID\":" + curReq[0]["Id"] + "#\"TestDataServer\":" + "\"" + curReq[0]["FileDownloadAddress"] + "\"")
                                                                    .Encrypt("sample_shared_secret");
                             if (AsynchronousSocketListener.DeviceList.Exists(x => x.IMEI1 == stateObject.IMEI1))
                             {
@@ -2176,7 +2221,7 @@ namespace TCPServer
                                         if (AsynchronousSocketListener.DeviceList.Exists(x => x.IMEI1 == stateObject.IMEI1))
                                         {
                                             sql = await Trans_AddVersionDetail(stateObject, curReq, connection, sql, content);
-                                            if (TcpSettings.Imei1Log=="All" || stateObject.IMEI1 == TcpSettings.Imei1Log)
+                                            if (TcpSettings.Imei1Log == "All" || stateObject.IMEI1 == TcpSettings.Imei1Log)
                                             {
 
                                                 Console.ForegroundColor = ConsoleColor.Yellow;
@@ -2209,43 +2254,43 @@ namespace TCPServer
                                             var curUPDRec = JArray.Parse(ExsitUPD);
                                             var UPDCreateDate = Convert.ToDateTime(curUPDRec[0]["CreateDate"]);
                                             // سرور به کلاینت گذشته باشد، اطلاعات دوباره ارسال میشود UPDو دو دقیقه  هم از زمان ارسال پیام 
-                                           // TimeSpan diffGT2 = DateTime.Now - UPDCreateDate;
-                                           // if (diffGT2.Seconds > 60)
-                                           // {
+                                            // TimeSpan diffGT2 = DateTime.Now - UPDCreateDate;
+                                            // if (diffGT2.Seconds > 60)
+                                            // {
+                                            try
+                                            {
+                                                int detail_UpdId; int.TryParse(curUPDRec[0]["Id"].ToString(), out detail_UpdId);
+                                                sql = await Trans_DelVersionDetail(curReq, connection, sql, detail_UpdId, stateObject.IMEI1);
+                                                //ارسال دوباره فرمان آپدیت                                        
+                                                //دستور آپدیت دستگاه با آدرس فایل مورد نظردر سرور
+                                                var content = ("UPD#\"VID\":" + curReq[0]["Id"] + "#\"TestDataServer\":" + "\"" + curReq[0]["FileDownloadAddress"] + "\"")
+                                                                                            .Encrypt("sample_shared_secret");
                                                 try
                                                 {
-                                                    int detail_UpdId; int.TryParse(curUPDRec[0]["Id"].ToString(), out detail_UpdId);
-                                                    sql = await Trans_DelVersionDetail(curReq, connection, sql, detail_UpdId, stateObject.IMEI1);
-                                                    //ارسال دوباره فرمان آپدیت                                        
-                                                    //دستور آپدیت دستگاه با آدرس فایل مورد نظردر سرور
-                                                    var content = ("UPD#\"VID\":" + curReq[0]["Id"] + "#\"TestDataServer\":" + "\"" + curReq[0]["FileDownloadAddress"] + "\"")
-                                                                                                .Encrypt("sample_shared_secret");
-                                                    try
+                                                    if (AsynchronousSocketListener.DeviceList.Exists(x => x.IMEI1 == stateObject.IMEI1))
                                                     {
-                                                        if (AsynchronousSocketListener.DeviceList.Exists(x => x.IMEI1 == stateObject.IMEI1))
+                                                        sql = await Trans_AddVersionDetail(stateObject, curReq, connection, sql, content);
+                                                        if (TcpSettings.Imei1Log == "All" || stateObject.IMEI1 == TcpSettings.Imei1Log)
                                                         {
-                                                            sql = await Trans_AddVersionDetail(stateObject, curReq, connection, sql, content);
-                                                            if (TcpSettings.Imei1Log == "All" || stateObject.IMEI1 == TcpSettings.Imei1Log)
-                                                            {
-                                                                Console.ForegroundColor = ConsoleColor.Yellow;
-                                                                Console.WriteLine($"*************************************");
-                                                                Console.WriteLine($"Send UPD Server To IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
-                                                                Console.WriteLine($"*************************************");
-                                                                Console.ForegroundColor = ConsoleColor.Green;
-                                                            }
-                                                            _ = Util.LogErrorAsync(new Exception($"UPD Send To IMEI1={stateObject.IMEI1} IP={stateObject.IP}"), content, $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
+                                                            Console.ForegroundColor = ConsoleColor.Yellow;
+                                                            Console.WriteLine($"*************************************");
+                                                            Console.WriteLine($"Send UPD Server To IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
+                                                            Console.WriteLine($"*************************************");
+                                                            Console.ForegroundColor = ConsoleColor.Green;
                                                         }
-                                                    }
-                                                    catch (Exception ex)
-                                                    {
-                                                        _ = LogErrorAsync(ex, "1236 -- Method -- UpdateVersion", $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
+                                                        _ = Util.LogErrorAsync(new Exception($"UPD Send To IMEI1={stateObject.IMEI1} IP={stateObject.IP}"), content, $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
                                                     }
                                                 }
                                                 catch (Exception ex)
                                                 {
-                                                    _ = LogErrorAsync(ex, "1241 -- Method -- UpdateVersion", $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
+                                                    _ = LogErrorAsync(ex, "1236 -- Method -- UpdateVersion", $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
                                                 }
-                                           // }
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                _ = LogErrorAsync(ex, "1241 -- Method -- UpdateVersion", $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
+                                            }
+                                            // }
                                         }
                                     }
                                     catch (Exception ex)
@@ -2364,7 +2409,7 @@ namespace TCPServer
             cryptoStream.Close();
             return Encoding.UTF8.GetString(plainTextBytes, 0, decryptedByteCount).TrimEnd("\0".ToCharArray());
         }
-        internal static async Task UpdateMachineState(string IMEI1, string IMEI2, bool IsConnected,string machineVersion="")
+        internal static async Task UpdateMachineState(string IMEI1, string IMEI2, bool IsConnected, string machineVersion = "")
         {
             using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
@@ -2374,7 +2419,7 @@ namespace TCPServer
                     string sql = $"if not exists(select 1 from machine where IMEI1 = @IMEI1) " +
                         $"begin " +
                         $" insert into machine(IMEI1, IMEI2, MachineTypeId) select @IMEI1, @IMEI2, 1 " +
-                        $"end " + 
+                        $"end " +
                         $"update machine set IsConnected = @IsConnected {machineVersion} where IMEI1 = @IMEI1 " +
                         $"insert into MachineConnectionHistory( MachineId, IsConnected) values " +
                         $" ((select id from  machine where IMEI1 = @IMEI1 ), @IsConnected)";
@@ -2423,7 +2468,7 @@ namespace TCPServer
                         command.Parameters.AddWithValue("@IsConnected", IsConnected);
                         command.Parameters.AddWithValue("@IMEI1", IMEI1);
                         command.Parameters.AddWithValue("@IMEI2", IMEI2);
-                        command.Parameters.AddWithValue("@Version", machineVersion);                        
+                        command.Parameters.AddWithValue("@Version", machineVersion);
                         connection.Open();
                         await command.ExecuteNonQueryAsync();
                     }
@@ -2438,7 +2483,7 @@ namespace TCPServer
                 }
             }
         }
-        internal static async Task UpdateMachineLocation(string IMEI1, string IMEI2, string lat, string lon, double speed = 0.0,double speed2=0.0,double altitude=0.0, DateTime? DateFromDevice = null, float? CpuTemprature = null)
+        internal static async Task UpdateMachineLocation(string IMEI1, string IMEI2, string lat, string lon, double speed = 0.0, double speed2 = 0.0, double altitude = 0.0, DateTime? DateFromDevice = null, float? CpuTemprature = null)
         {
             using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
@@ -2461,7 +2506,7 @@ namespace TCPServer
                         command.Parameters.AddWithValue("@Speed", speed);
                         command.Parameters.AddWithValue("@Speed2", speed2);
                         command.Parameters.AddWithValue("@Altitude", altitude);
-                        if (DateFromDevice != null)  
+                        if (DateFromDevice != null)
                         {
                             command.Parameters.AddWithValue("@fromDevice", DateFromDevice);
                         }
