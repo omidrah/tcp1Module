@@ -1348,7 +1348,6 @@ namespace TCPServer
                                         }
                                         else if (t[0].Equals("TraceRoute"))
                                         {
-                                            
                                              _= TraceRoute(inseretStatment, valueStatmenet, t,TestId,createDate,state);
                                             //var traceRtResponse = t[1].Replace("\n","").Split(',');
                                             //var des = traceRtResponse[0];//destination
@@ -1379,6 +1378,18 @@ namespace TCPServer
 
                                             //}
                                         }
+                                        else if (t[0].Contains("ActiveSET"))
+                                        {
+                                            ActiveSet(inseretStatment, valueStatmenet,t, TestId, createDate, state);
+                                        }
+                                        else if (t[0].Contains("SyncNeighborSET"))
+                                        {
+
+                                        }
+                                        else if (t[0].Contains("AsyncNeighborSET"))
+                                        {
+
+                                        }
                                         else
                                         {
                                             if (t[0] == "CreateDate")
@@ -1389,11 +1400,9 @@ namespace TCPServer
                                             valueStatmenet = valueStatmenet +
                                                 (int.TryParse(t[1].Replace("dBm", ""), out i) || t[1].Contains("0x") ? i.ToString() : t[1] == "NuNu" ? "null" : "'" + t[1].Replace("dBm", "") + "'") + " ,";
                                         }
-
                                     }
                                     else
                                     {
-
                                         if (t[1].Contains("-"))
                                         {
                                             inseretStatment = inseretStatment + t[0] + " , IsGroup, ";
@@ -1404,10 +1413,8 @@ namespace TCPServer
                                         {
                                             inseretStatment = inseretStatment + t[0] + " , IsGroup, ";
                                             valueStatmenet = valueStatmenet + t[1] + " , 0 , ";
-
                                             int.TryParse(t[1], out TestId);//omid added --981121
                                         }
-
                                     }
                                 }
                                 else if (t.Length == 4)
@@ -1429,6 +1436,56 @@ namespace TCPServer
                 _ = LogErrorAsync(ex, "1431 --Method-- ProcessTSCRecievedContent", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
             }
         }
+        /// <summary>
+        /// ActiveSet Param in TSC
+        /// first param is length of loop
+        /// </summary>
+        /// <param name="inseretStatment"></param>
+        /// <param name="valueStatmenet"></param>
+        /// <param name="t"></param>
+        /// <param name="testId"></param>
+        /// <param name="createDate"></param>
+        /// <param name="state"></param>
+        private static void ActiveSet(string insertStatment, string valueStatmenet,
+            string[] t,
+            int testId,
+            string createDate,
+            StateObject state)
+        {
+            valueStatmenet = valueStatmenet.Replace("Values", "");
+            string tmpvalue = string.Empty;
+            insertStatment += "ActiveSetNum,Sttd,TotECIO,TPC,WinSize,RegisterDate) values ";
+            var ActSets = t[1].Split(',');
+            if(int.TryParse(ActSets[0],out int LoopOfActSet))
+            {
+                if(LoopOfActSet > 0)
+                {                    
+                    int cntvalue = 1;               
+                    for (int i = 1; i <= LoopOfActSet; i++)
+                    {                        
+                        int stIndex = cntvalue; int enIndex = i * 10;
+                        for (int j = stIndex; j <= enIndex; j++)
+                        {
+                            tmpvalue = valueStatmenet + $"{LoopOfActSet},";
+                            if (j == enIndex) {
+                                tmpvalue += $"{Convert.ToDouble(ActSets[stIndex + 3])}," +
+                                    $"{Convert.ToDouble(ActSets[stIndex + 4])},{Convert.ToDouble(ActSets[stIndex + 7])}," +
+                                    $"{Convert.ToDouble(ActSets[stIndex + 9])},'{DateTime.Now.ToString()}')";
+                            }
+                            else
+                            {
+                                tmpvalue += $"{Convert.ToDouble(ActSets[stIndex + 3])}," +
+                                    $"{Convert.ToDouble(ActSets[stIndex + 4])},{Convert.ToDouble(ActSets[stIndex + 7])}," +
+                                    $"{Convert.ToDouble(ActSets[stIndex + 9])},'{DateTime.Now.ToString()}'),";
+                            }
+                        }
+                        cntvalue += enIndex;
+                    }
+                }
+            }
+
+        }
+
         /// <summary>
         /// /// In TraceRoute , because mutil traceRoute response Received from device in one Test 
         /// use insert multi row in one sql query 
@@ -1680,8 +1737,8 @@ namespace TCPServer
                     case "RSSI":
                         float.TryParse(param.Split(":")[1], out tmpVal); tmpVal /= 10;//addeddby-omid-981229
                         return new string[] { "RSSI", tmpVal.ToString() };
-                    case "OVFSF":
-                        return new string[] { "OVFSF", param.Split(":")[1] }; //omid Edit and update
+                    case "OVSF":
+                        return new string[] { "OVSF", param.Split(":")[1] }; //omid Edit and update
                     case "RXEQUAL":
                         return new string[] { "RXQual", param.Split(":")[1] };
                     case "SYSMODE":  //1:2G , 4:3G, 8:4G
@@ -1754,6 +1811,193 @@ namespace TCPServer
                     case "ServerL3"://layer3 params, Path of File
                         TcpSettings.serverPath = param.Split(":")[1];
                         break;
+                    case "Up_time_redirect": //Upload,Download                    
+                        if (double.TryParse(param.Split(":")[1], out double  sd))
+                        {
+                            return new string[] { "Up_time_redirect", sd.ToString() };
+                        }
+                        return new string[] { "Up_time_redirect", "NuNu" };
+                    case "Up_time_namelookup": //Upload,Download  
+                        {
+                            if (double.TryParse(param.Split(":")[1], out double  utm))
+                            {
+                                return new string[] { "Up_time_namelookup", utm.ToString() };
+                            }
+                            return new string[] { "Up_time_namelookup", "NuNu" };
+                        }
+                    case "Up_time_connect": //Upload,Download                    
+                        if (double.TryParse(param.Split(":")[1], out double  utr))
+                        {
+                            return new string[] { "Up_time_connect", utr.ToString() };
+                        }
+                        return new string[] { "Up_time_connect", "NuNu" };
+                    case "Up_time_appconnect": //Upload,Download                    
+                        if (double.TryParse(param.Split(":")[1], out double uta))
+                        {
+                            return new string[] { "Up_time_appconnect", uta.ToString() };
+                        }
+                        return new string[] { "Up_time_appconnect", "NuNu" };
+                    case "Up_time_pretransfer": //Upload,Download                    
+                        if (double.TryParse(param.Split(":")[1], out double utp))
+                        {
+                            return new string[] { "Up_time_pretransfer", utp.ToString() };
+                        }
+                        return new string[] { "Up_time_pretransfer", "NuNu" };
+
+                    case "Up_time_starttransfer": //Upload,Download                    
+                        if (double.TryParse(param.Split(":")[1], out double uts))
+                        {
+                            return new string[] { "Up_time_starttransfer", uts.ToString() };
+                        }
+                        return new string[] { "Up_time_starttransfer", "NuNu" };
+                    case "Up_time_total": //Upload,Download                    
+                        if (double.TryParse(param.Split(":")[1], out double utt))
+                        {
+                            return new string[] { "Up_time_total", utt.ToString() };
+                        }
+                        return new string[] { "Up_time_total", "NuNu" };
+                    case "Up_size_request": //Upload,Download                    
+                        if (double.TryParse(param.Split(":")[1], out double usr))
+                        {
+                            return new string[] { "Up_size_request", usr.ToString() };
+                        }
+                        return new string[] { "Up_size_request", "NuNu" };
+                    case "Up_size_upload": //Upload,Download                    
+                        if (double.TryParse(param.Split(":")[1], out double usu))
+                        {
+                            return new string[] { "Up_size_upload", usu.ToString() };
+                        }
+                        return new string[] { "Up_size_upload", "NuNu" };
+                    case "Up_size_download": //Upload,Download                    
+                        if (double.TryParse(param.Split(":")[1], out double usd))
+                        {
+                            return new string[] { "Up_size_download", usd.ToString() };
+                        }
+                        return new string[] { "Up_size_download", "NuNu" };
+                    case "Up_size_header": //Upload,Download                    
+                        if (double.TryParse(param.Split(":")[1], out double ush))
+                        {
+                            return new string[] { "Up_size_header", ush.ToString() };
+                        }
+                        return new string[] { "Up_size_header", "NuNu" };
+                    case "Up_http_version": //Upload,Download                                            
+                        return new string[] { "Up_http_version", param.Split(":")[1] };
+                    case "Up_redirect_url": //Upload,Download                                           
+                        return new string[] { "Up_redirect_url", param.Split(":")[1] };
+                    case "Up_remote_ip": //Upload,Download                                           
+                        return new string[] { "Up_remote_ip", param.Split(":")[1] };
+                    case "Up_remote_port": //Upload,Download                    
+                        if (int.TryParse(param.Split(":")[1], out int pr))
+                        {
+                            return new string[] { "Up_remote_port", pr.ToString() };
+                        }
+                        return new string[] { "Up_remote_port", "NuNu" };
+                    case "Up_scheme": //Upload,Download                                           
+                        return new string[] { "Up_scheme", param.Split(":")[1] };
+                    case "Up_speed_download": //Upload,Download                    
+                        if (double.TryParse(param.Split(":")[1], out double uud))
+                        {
+                            return new string[] { "Up_speed_download", uud.ToString() };
+                        }
+                        return new string[] { "Up_speed_download", "NuNu" };
+                    case "Up_speed_upload": //Upload,Download                    
+                        if (double.TryParse(param.Split(":")[1], out double uss))
+                        {
+                            return new string[] { "Up_speed_upload", uss.ToString() };
+                        }
+                        return new string[] { "Up_speed_upload", "NuNu" };
+                    case "Dl_time_redirect": //Upload,Download                    
+                        if (double.TryParse(param.Split(":")[1], out double tuu))
+                        {
+                            return new string[] { "Dl_time_redirect", tuu.ToString() };
+                        }
+                        return new string[] { "Dl_time_redirect", "NuNu" };
+                    case "Dl_time_namelookup": //Upload,Download                    
+                        if (double.TryParse(param.Split(":")[1], out double dtt))
+                        {
+                            return new string[] { "Dl_time_namelookup", dtt.ToString() };
+                        }
+                        return new string[] { "Dl_time_namelookup", "NuNu" };
+                    case "Dl_time_connect": //Upload,Download                    
+                        if (double.TryParse(param.Split(":")[1], out double dtc))
+                        {
+                            return new string[] { "Dl_time_connect", dtc.ToString() };
+                        }
+                        return new string[] { "Dl_time_connect", "NuNu" };
+                    case "Dl_time_appconnect": //Upload,Download                    
+                        if (double.TryParse(param.Split(":")[1], out double dta))
+                        {
+                            return new string[] { "Dl_time_appconnect", dta.ToString() };
+                        }
+                        return new string[] { "Dl_time_appconnect", "NuNu" };
+                    case "Dl_time_pretransfer": //Upload,Download                    
+                        if (double.TryParse(param.Split(":")[1], out double dtp))
+                        {
+                            return new string[] { "Dl_time_pretransfer", dtp.ToString() };
+                        }
+                        return new string[] { "Dl_time_pretransfer", "NuNu" };
+                    case "Dl_time_starttransfer": //Upload,Download                    
+                        if (double.TryParse(param.Split(":")[1], out double dts))
+                        {
+                            return new string[] { "Dl_time_starttransfer", dts.ToString() };
+                        }
+                        return new string[] { "Dl_time_starttransfer", "NuNu" };
+                    case "Dl_time_total": //Upload,Download                    
+                        if (double.TryParse(param.Split(":")[1], out double ltt))
+                        {
+                            return new string[] { "Dl_time_total", ltt.ToString() };
+                        }
+                        return new string[] { "Dl_time_total", "NuNu" };
+                    case "Dl_size_request": //Upload,Download                    
+                        if (double.TryParse(param.Split(":")[1], out double drs))
+                        {
+                            return new string[] { "Dl_size_request", drs.ToString() };
+                        }
+                        return new string[] { "Dl_size_request", "NuNu" };
+                    case "Dl_size_upload": //Upload,Download                    
+                        if (double.TryParse(param.Split(":")[1], out double dis))
+                        {
+                            return new string[] { "Dl_size_upload", dis.ToString() };
+                        }
+                        return new string[] { "Dl_size_upload", "NuNu" };
+                    case "Dl_size_download": //Upload,Download                    
+                        if (double.TryParse(param.Split(":")[1], out double sdi))
+                        {
+                            return new string[] { "Dl_size_download", sdi.ToString() };
+                        }
+                        return new string[] { "Dl_size_download", "NuNu" };
+                    case "Dl_size_header": //Upload,Download                    
+                        if (double.TryParse(param.Split(":")[1], out double dsh))
+                        {
+                            return new string[] { "Dl_size_header", dsh.ToString() };
+                        }
+                        return new string[] { "Dl_size_header", "NuNu" };
+                    case "Dl_http_version": //Upload,Download                                           
+                        return new string[] { "Dl_http_version", param.Split(":")[1] };
+                    case "Dl_redirect_url": //Upload,Download                                            
+                        return new string[] { "Dl_redirect_url", param.Split(":")[1] };
+                    case "Dl_remote_ip": //Upload,Download                                            
+                        return new string[] { "Dl_remote_ip", param.Split(":")[1] };
+                    case "Dl_remote_port": //Upload,Download                    
+                        if (int.TryParse(param.Split(":")[1], out int drp))
+                        {
+                            return new string[] { "Dl_remote_port", drp.ToString() };
+                        }
+                        return new string[] { "Dl_remote_port", "NuNu" };
+                    case "Dl_scheme": //Upload,Download                                           
+                        return new string[] { "Dl_scheme", param.Split(":")[1] };
+                    case "Dl_speed_download": //Upload,Download                    
+                        if (double.TryParse(param.Split(":")[1], out double dsd))
+                        {
+                            return new string[] { "Dl_speed_download", dsd.ToString() };
+                        }
+                        return new string[] { "Dl_speed_download", "NuNu" };
+                    case "Dl_speed_upload": //Upload,Download                    
+                        if (double.TryParse(param.Split(":")[1], out double dsp))
+                        {
+                            return new string[] { "Dl_speed_upload", dsp.ToString() };
+                        }
+                        return new string[] { "Dl_speed_upload", "NuNu" };
                     default:
                         break;
                 }
