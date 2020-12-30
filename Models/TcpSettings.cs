@@ -14,6 +14,7 @@ namespace TCPServer.Models
         public static string l3Host { get; set; }
         public static string Rest { get; set; }
         public static string serverPath { get; set; }
+        public static int ConsoleTableWidth { get; set; }
         public static readonly HttpClientHandler _handler = new HttpClientHandler
         {
             MaxConnectionsPerServer = int.MaxValue, // default for .NET Core

@@ -5,10 +5,11 @@ using System.IO;
 using System.Threading.Tasks;
 using TCPServer.Models;
 
+
 namespace TCPServer
 {
     class Program
-    {        
+    {
         static async Task Main(string[] args)
         {
             var builder = new ConfigurationBuilder()
@@ -67,13 +68,17 @@ namespace TCPServer
                 configuration.GetSection("Config:l3MessageFolder").Value) ?
                                             string.Empty :configuration.GetSection("Config:l3MessageFolder").Value;
             //Rest--> use for DateTime in Device
-            TcpSettings.Rest = string.IsNullOrWhiteSpace(configuration.GetSection("Config:Rest").Value) ?
-                                   string.Empty : configuration.GetSection("Config:Rest").Value;
+            TcpSettings.Rest = string.IsNullOrWhiteSpace(configuration.GetSection("Config:Rest").Value) ? string.Empty : configuration.GetSection("Config:Rest").Value;
             TcpSettings.ConnectionString = configuration.GetConnectionString("DefaultConnection");
+            TcpSettings.ConsoleTableWidth = string.IsNullOrWhiteSpace(configuration.GetSection("Config:TableWidth").Value) ?
+                                             73 : Convert.ToInt32(configuration.GetSection("Config:TableWidth").Value);
         }
 
         private static void ServerConfig()
-        {            
+        {
+            Console.Title = "TcpServer";
+            //Console.WindowWidth = 240;
+            //Console.WindowHeight = 200;
             Menu();
             while (true)
             {
@@ -82,21 +87,21 @@ namespace TCPServer
                 {
                     case ConsoleKey.S:
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine("Please Enter Server Ip:");
+                        Console.WriteLine(ConsolePrint.AlignCentre("Please Enter Server Ip:"));
                         TcpSettings.ip = Console.ReadLine();
                         Console.Clear();
                         Menu();
                         break;
                     case ConsoleKey.P:
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine("Please Enter Server Port:");
+                        Console.WriteLine(ConsolePrint.AlignCentre("Please Enter Server Port:"));
                         TcpSettings.port = Console.ReadLine();
                         Console.Clear();
                         Menu();
                         break;
                     case ConsoleKey.G:
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine("Please Enter General Timer(second):");
+                        Console.WriteLine(ConsolePrint.AlignCentre("Please Enter General Timer(second):"));
                         var p = Console.ReadLine();
                         Console.Clear();
                         TcpSettings.TGenral =Convert.ToDouble(p);                        
@@ -104,7 +109,7 @@ namespace TCPServer
                         break;
                     case ConsoleKey.C:
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine("Please Enter Client Timer(second):");
+                        Console.WriteLine(ConsolePrint.AlignCentre("Please Enter Client Timer(second):"));
                         var p1 = Console.ReadLine();
                         Console.Clear();
                         TcpSettings.ctSecond = Convert.ToDouble(p1);
@@ -126,14 +131,14 @@ namespace TCPServer
                     case ConsoleKey.I:
                         Console.Clear();
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine($"Server is {TcpSettings.ip} \n");
-                        Console.WriteLine($"Port is {TcpSettings.port} \n");
+                        Console.WriteLine(ConsolePrint.AlignCentre($"Server is {TcpSettings.ip} \n"));
+                        Console.WriteLine(ConsolePrint.AlignCentre($"Port is {TcpSettings.port} \n"));
                         Console.ForegroundColor = ConsoleColor.White;
                         Menu();
                         break;
                    case ConsoleKey.R: //Refresh DeviceList                        
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine($"Starting Refresh Device \n");
+                        Console.WriteLine(ConsolePrint.AlignCentre($"Starting Refresh Device \n"));
                         foreach (var tmp in AsynchronousSocketListener.DeviceList)
                         {
                             if (!tmp.IsConnected || tmp.counter >= 2 || (tmp.counter < 1))
@@ -145,10 +150,10 @@ namespace TCPServer
                         break;
                     case ConsoleKey.K:
                         Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine("**************************");
-                        Console.WriteLine("Starting Kill IMEI       *");
-                        Console.WriteLine("Enter IMEI :             *");
-                        Console.WriteLine("**************************");
+                        ConsolePrint.PrintLine('*');
+                        Console.WriteLine(ConsolePrint.AlignCentre("Starting Kill IMEI"));
+                        Console.WriteLine(ConsolePrint.AlignCentre("Enter IMEI :\n "));
+                        ConsolePrint.PrintLine('*');
                         var clientIMEI = Console.ReadLine();
                         Console.ForegroundColor = ConsoleColor.Green;
                         var item = AsynchronousSocketListener.DeviceList.Find(x => x.IMEI1 == clientIMEI);
@@ -156,29 +161,42 @@ namespace TCPServer
                             AsynchronousSocketListener.clientDis(item);
                             _ = Util.UpdateMachineState(item.IMEI1, item.IMEI2, false);                            
                         };
-                        Console.WriteLine($"Press any key to continue...");
+                        Console.WriteLine(ConsolePrint.AlignCentre($"Press any key to continue..."));
                         Console.ReadKey();
                         Console.Clear();                        
                         break;
                     case ConsoleKey.L: //Show List Of IMEI1  in DeviceList
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine("**************************");
-                        Console.WriteLine("*  List Of Live IMEI     *");                        
-                        Console.WriteLine("**************************");                        
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        foreach (var tmp in AsynchronousSocketListener.DeviceList)
+                        Console.Clear();                        
+                        if (AsynchronousSocketListener.DeviceList !=null && AsynchronousSocketListener.DeviceList.Count > 0)
                         {
-                            Console.WriteLine($"IMEI1={tmp.IMEI1} , " +
-                                $" Isconnected= {tmp.IsConnected}," +
-                                $" HandShakeCounter={tmp.counter}, " +
-                                $"Last Date Connected ={tmp.lastDateTimeConnected.ToString("yyyy/MM/dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)} \n");
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            ConsolePrint.PrintLine('*');
+                            Console.WriteLine(ConsolePrint.AlignCentre("List Of Live IMEI"));
+                            ConsolePrint.PrintLine('*');
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            ConsolePrint.PrintLine();
+                            ConsolePrint.PrintRow("IMEI1", "Status", "Counter", "Last Date");
+                            ConsolePrint.PrintLine();
+                            foreach (var tmp in AsynchronousSocketListener.DeviceList)
+                            {
+                                ConsolePrint.PrintRow(tmp.IMEI1, tmp.IsConnected == true ? "Connected" : "DisConnected", tmp.counter.ToString(), $"{tmp.lastDateTimeConnected.ToString("yyyy / MM / dd HH: mm:ss", System.Globalization.CultureInfo.InvariantCulture)}");
+                                ConsolePrint.PrintLine();
+                            }
+                            Task.Delay(10000);
                         }
-                        Console.WriteLine($"Press any key to continue...");
-                        Console.ReadKey();
-                        Console.Clear();                                                
+                        else
+                        {
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            ConsolePrint.PrintLine('*');
+                            Console.WriteLine(ConsolePrint.AlignCentre("No Device Exist Yet"));
+                            ConsolePrint.PrintLine('*');
+                            Console.ForegroundColor = ConsoleColor.Green;                            
+                        }
+                        Console.WriteLine(ConsolePrint.AlignCentre($"\n\nPress any key to continue..."));
+                        Console.ReadKey();                                               
                         break;
                     default:
-                        Console.WriteLine("Please Enter Correct Command.");
+                        Console.WriteLine(ConsolePrint.AlignCentre("Please Enter Correct Command."));
                         break;
                 }
             }
@@ -187,39 +205,39 @@ namespace TCPServer
         {
             Console.ResetColor();
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("*********************************************************");            
-            Console.WriteLine($"                     Menu Command                       ");            
-            Console.WriteLine("*********************************************************");
-            Console.ForegroundColor = ConsoleColor.White;
+            ConsolePrint.PrintLine('*');
+            Console.WriteLine(ConsolePrint.AlignCentre("Menu Command"));
+            ConsolePrint.PrintLine('*');
+            Console.ForegroundColor = ConsoleColor.White;            
             Console.WriteLine($" (S) Set Server ip                                      ");
-            Console.WriteLine("*********************************************************");
+            ConsolePrint.PrintLine('*');
             Console.WriteLine($" (P) Set Server Port                                    ");
-            Console.WriteLine("*********************************************************");
+            ConsolePrint.PrintLine('*');
             Console.WriteLine($" (G) Set General Timer(Default=10 second)               ");
-            Console.WriteLine("*********************************************************");
+            ConsolePrint.PrintLine('*');
             Console.WriteLine($" (C) Set Client Timer(Default=10 second)                ");
-            Console.WriteLine("*********************************************************");
+            ConsolePrint.PrintLine('*');
             Console.WriteLine($" (A) Apply Ip and Port and start                        ");
-            Console.WriteLine("*********************************************************");
+            ConsolePrint.PrintLine('*');
             Console.WriteLine($" (D) Default   Server Start                             ");
-            Console.WriteLine("*********************************************************");            
+            ConsolePrint.PrintLine('*');
             Console.WriteLine($" (M) KavoshKom Server Start                             ");
-            Console.WriteLine("*********************************************************");
+            ConsolePrint.PrintLine('*');
             Console.WriteLine($" (I) Information                                        ");
-            Console.WriteLine("*********************************************************");
+            ConsolePrint.PrintLine('*');
             Console.WriteLine($" (R) Refresh Device List                                ");
-            Console.WriteLine("*********************************************************");
+            ConsolePrint.PrintLine('*');
             Console.WriteLine($" (L) List Live IMEI                                     ");
-            Console.WriteLine("*********************************************************");
+            ConsolePrint.PrintLine('*');
             Console.WriteLine($" (K) Kill By   IMEI                                     ");
-            Console.WriteLine("*********************************************************");
+            ConsolePrint.PrintLine('*');
             Console.WriteLine($" (CTRL+C) ShutDown                                      ");
-            Console.WriteLine("*********************************************************");
+            ConsolePrint.PrintLine('*');
         }
         private static string Confirm(string ip, string port)
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"Does Server By {ip} on port {port} Starting?(y/n) ");
+            Console.WriteLine(ConsolePrint.AlignCentre($"Does Server By {ip} on port {port} Starting?(y/n) "));
             var auth = Console.ReadLine();
             if (auth.ToLower().StartsWith("y"))
             {
@@ -238,5 +256,6 @@ namespace TCPServer
             }
             return auth;
         }
+      
     }
 }

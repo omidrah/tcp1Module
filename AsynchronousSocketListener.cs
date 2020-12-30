@@ -19,14 +19,14 @@ namespace TCPServer
         public static List<string> SendedTest = new List<string>();        
         public static Socket listener;
         public static void StartListening(string ip, int port)
-        {            
-            Console.WriteLine("*********************************************************");
-            Console.WriteLine($" Server by Ip {ip} on Port {port} ready for Listen      ");
-            Console.WriteLine("*********************************************************");
-            Console.WriteLine($" Server Started @ {DateTime.Now}                        ");
-            Console.WriteLine("*********************************************************");
-            Console.WriteLine("  Press CTRL+C For ShutDown Server                       ");
-            Console.WriteLine("*********************************************************");                        
+        {
+            ConsolePrint.PrintLine('*');            
+            Console.WriteLine(ConsolePrint.AlignCentre($" Server by Ip {ip} on Port {port} ready for Listen"));
+            ConsolePrint.PrintLine('*');
+            Console.WriteLine(ConsolePrint.AlignCentre($" Server Started @ {DateTime.Now}"));
+            ConsolePrint.PrintLine('*');
+            Console.WriteLine(ConsolePrint.AlignCentre("Press CTRL+C For ShutDown Server"));
+            ConsolePrint.PrintLine('*');
             DeviceList = new List<StateObject>();
             listener = new Server(ip, port)._listener;            
             var genTimer = new System.Timers.Timer(TcpSettings.TGenral); //after 1 minute
@@ -49,9 +49,9 @@ namespace TCPServer
             if (DeviceList.Count > 0 )
             {    
                 Console.ForegroundColor = ConsoleColor.White;
-                Console.WriteLine($"*************************************"); 
-                Console.WriteLine($"*Device cnt={DeviceList.Count} @ {DateTime.Now.ToString("yyyy/M/d HH:mm:ss",System.Globalization.CultureInfo.InvariantCulture)}");
-                Console.WriteLine($"*************************************\n");
+                ConsolePrint.PrintLine('*');
+                Console.WriteLine(ConsolePrint.AlignCentre($"Device cnt={DeviceList.Count} @ {DateTime.Now.ToString("yyyy/M/d HH:mm:ss",System.Globalization.CultureInfo.InvariantCulture)}"));
+                ConsolePrint.PrintLine('*');
                 Console.ForegroundColor = ConsoleColor.Green;               
             }
             a.Start();
@@ -80,14 +80,7 @@ namespace TCPServer
                     {
                         DeviceList.Remove(CurItem);
                     }
-                    if (TcpSettings.Imei1Log == "All"  || item.IMEI1 == TcpSettings.Imei1Log)
-                    {
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine($"*************************************");
-                        Console.WriteLine($"Device by IMEI1={item.IMEI1} Ip={item.IP} Disconnected @ {DateTime.Now.ToString("yyyy/M/d HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)}");
-                        Console.WriteLine($"*************************************");
-                        Console.ForegroundColor = ConsoleColor.Green;
-                    }
+                    Util.ShowMessage($"Device by IMEI1={item.IMEI1}/IP={item.IP} Disconnected  @{DateTime.Now.ToString("yyyy/M/d HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)}  serverUtcTime= @{DateTime.UtcNow}", ConsoleColor.Red, ConsoleColor.Green, item.IMEI1);
                 }
             }
             catch (Exception ex)
@@ -225,6 +218,7 @@ namespace TCPServer
             }
         }
         private static async Task CheckValue(StateObject client)        
+        
         {
             if (client.value.Contains("SHORU")) //has shoru
             {
@@ -282,17 +276,8 @@ namespace TCPServer
 
         private static async Task ParseMsg(string content, StateObject client)
         {
-            if (TcpSettings.Imei1Log == "All" || client.IMEI1 == TcpSettings.Imei1Log)
-            {
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine($"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-                Console.WriteLine("Read {0} bytes from IMEI1={1} Ip={2} @ {3}", content.Length, client.IMEI1, client.IP, DateTime.Now.ToString("yyyy/M/d HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture));
-                Console.WriteLine($"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< \n");
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine(content);
-
-            }
-            content = content.Replace("SHORU", "").Replace("PAYAN", "");//remove identifire tags
+            Util.ShowMessage($"Read {content.Length} bytes from IMEI1={client.IMEI1}/IP={client.IP}  @{DateTime.Now.ToString("yyyy/M/d HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)}  serverUtcTime= @{DateTime.UtcNow}", ConsoleColor.Yellow, ConsoleColor.Green, client.IMEI1);
+            content = content.Replace("SHORU", "").Replace("PAYAN", "");//remove identifires tags
             string[] bContent = content.Split(",");
             List<string> pContent = new List<string>();
             try
@@ -370,14 +355,8 @@ namespace TCPServer
                         }
                         else
                         {
-                            if (TcpSettings.Imei1Log == "All"  || stateObject.IMEI1 == TcpSettings.Imei1Log)
-                            {
-                                Console.ForegroundColor = ConsoleColor.Yellow;
-                                Console.WriteLine($">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-                                Console.WriteLine("Sent {0} bytes to   IMEI1={1} Ip={2} @ {3}", bytesSent, stateObject.IMEI1, stateObject.IP, DateTime.Now.ToString("yyyy/M/d HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture));
-                                Console.WriteLine($">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-                            }
-                            Console.ForegroundColor = ConsoleColor.Green;
+                        Util.ShowMessage($"Sent {bytesSent} bytes to IMEI1={stateObject.IMEI1}/IP={stateObject.IP}  @ {DateTime.Now.ToString("yyyy/M/d HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)}  serverUtcTime= @{DateTime.UtcNow}", ConsoleColor.Yellow, ConsoleColor.Green, stateObject.IMEI1);
+
                             Array.Clear(stateObject.buffer, 0, stateObject.buffer.Length);
                             //stateObject.lastDateTimeConnected = DateTime.Now;
                             stateObject.counter += 1;//set for check connect
