@@ -80,7 +80,7 @@ namespace TCPServer
                     {
                         DeviceList.Remove(CurItem);
                     }
-                    Util.ShowMessage($"Device by IMEI1={item.IMEI1}/IP={item.IP} Disconnected  @{DateTime.Now.ToString("yyyy/M/d HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)}  serverUtcTime= @{DateTime.UtcNow}", ConsoleColor.Red, ConsoleColor.Green, item.IMEI1);
+                    Util.ShowMessage($"Device by IMEI1={item.IMEI1}/IP={item.IP} Disconnected", ConsoleColor.Red, ConsoleColor.Green, item.IMEI1);
                 }
             }
             catch (Exception ex)
@@ -276,7 +276,7 @@ namespace TCPServer
 
         private static async Task ParseMsg(string content, StateObject client)
         {
-            Util.ShowMessage($"Read {content.Length} bytes from IMEI1={client.IMEI1}/IP={client.IP}  @{DateTime.Now.ToString("yyyy/M/d HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)}  serverUtcTime= @{DateTime.UtcNow}", ConsoleColor.Yellow, ConsoleColor.Green, client.IMEI1);
+            Util.ShowMessage($"Read {content.Length} bytes from IMEI1={client.IMEI1}/IP={client.IP}", ConsoleColor.Green, ConsoleColor.Green, client.IMEI1);
             content = content.Replace("SHORU", "").Replace("PAYAN", "");//remove identifires tags
             string[] bContent = content.Split(",");
             List<string> pContent = new List<string>();
@@ -355,7 +355,7 @@ namespace TCPServer
                         }
                         else
                         {
-                        Util.ShowMessage($"Sent {bytesSent} bytes to IMEI1={stateObject.IMEI1}/IP={stateObject.IP}  @ {DateTime.Now.ToString("yyyy/M/d HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)}  serverUtcTime= @{DateTime.UtcNow}", ConsoleColor.Yellow, ConsoleColor.Green, stateObject.IMEI1);
+                        Util.ShowMessage($"Sent {bytesSent} bytes to IMEI1={stateObject.IMEI1}/IP={stateObject.IP}", ConsoleColor.Yellow, ConsoleColor.Green, stateObject.IMEI1);
 
                             Array.Clear(stateObject.buffer, 0, stateObject.buffer.Length);
                             //stateObject.lastDateTimeConnected = DateTime.Now;

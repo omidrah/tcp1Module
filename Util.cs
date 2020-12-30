@@ -92,7 +92,7 @@ namespace TCPServer
         }
         private static async Task ProcessDeviceWantSync(StateObject state, string[] paramArray)
         {
-            ShowMessage($"Get SRQ From IMEI1 ={state.IMEI1} @{DateTime.Now}", ConsoleColor.DarkGray, ConsoleColor.Green,state.IMEI1);
+            ShowMessage($"Get SRQ From IMEI1 ={state.IMEI1}", ConsoleColor.DarkGray, ConsoleColor.Green,state.IMEI1);
             _ = Util.SyncDevice(state);
         }
         /// <summary>
@@ -206,7 +206,7 @@ namespace TCPServer
             }
             if (TerminateTest != null)
             {
-                ShowMessage($"Send TRM From IMEI1 ={state.IMEI1} @{DateTime.Now}", ConsoleColor.DarkGray, ConsoleColor.Green, state.IMEI1);                
+                ShowMessage($"Send TRM From IMEI1 ={state.IMEI1}", ConsoleColor.DarkGray, ConsoleColor.Green, state.IMEI1);                
                 foreach (var item in JArray.Parse(TerminateTest))
                 {
                     var content = ("TRM#" + item.ToString().Replace("}", "").Replace(",", "#").
@@ -242,7 +242,7 @@ namespace TCPServer
         }
         private static async Task ProcessSYEDevice(StateObject state, string[] paramArray)
         {
-            ShowMessage($"Get SYE From IMEI1 ={state.IMEI1} @{DateTime.Now}", ConsoleColor.DarkGray, ConsoleColor.Green, state.IMEI1);            
+            ShowMessage($"Get SYE From IMEI1 ={state.IMEI1}", ConsoleColor.DarkGray, ConsoleColor.Green, state.IMEI1);            
             _ = LogErrorAsync(new Exception($"SYE of Sync Process on IMEI1{state.IMEI1}"), $"IMEI ={state.IMEI1} IP= {state.IP}", String.Join(",", paramArray)).ConfigureAwait(false);
             int syncMasterId; int.TryParse(paramArray[1].Split(':')[1], out syncMasterId);
             await UpdateMasterDetailSync(state, syncMasterId, "SYE", true);
@@ -271,7 +271,7 @@ namespace TCPServer
         }
         private async static Task SyncDevice(StateObject state)
         {
-            ShowMessage($"Sync Time IMEI1 ={state.IMEI1}/IP={state.IP} @{DateTime.Now}", ConsoleColor.Yellow, ConsoleColor.Green, state.IMEI1);            
+            ShowMessage($"Sync Time IMEI1 ={state.IMEI1}/IP={state.IP}", ConsoleColor.Yellow, ConsoleColor.Green, state.IMEI1);            
             try
             {
                 await AddSync(state).ConfigureAwait(false);
@@ -326,12 +326,12 @@ namespace TCPServer
                             tx.Commit();                            
                             if (iscompeleted != null)
                             {
-                                ShowMessage($"Successfully Upload-SYNC  from IMEI1={state.IMEI1}/IP={state.IP} @{DateTime.Now}", ConsoleColor.Yellow, ConsoleColor.Green, state.IMEI1);                                
+                                ShowMessage($"Successfully Upload-SYNC  from IMEI1={state.IMEI1}/IP={state.IP}", ConsoleColor.Yellow, ConsoleColor.Green, state.IMEI1);                                
                                 _ = LogErrorAsync(new Exception($"Successfully Upload {step} of Sync Process on IMEI1{state.IMEI1}"), $"IMEI ={state.IMEI1} IP= {state.IP}").ConfigureAwait(false);
                             }
                             else
                             {
-                                ShowMessage($"Success: {step} of SYNC Process on IMEI1={state.IMEI1}/IP={state.IP} @{DateTime.Now}", ConsoleColor.Yellow, ConsoleColor.Green, state.IMEI1);                                
+                                ShowMessage($"Success: {step} of SYNC Process on IMEI1={state.IMEI1}/IP={state.IP}", ConsoleColor.Yellow, ConsoleColor.Green, state.IMEI1);                                
                                 _ = LogErrorAsync(new Exception($"{step} of Sync Process on IMEI1{state.IMEI1}"), $"IMEI ={state.IMEI1} IP= {state.IP}").ConfigureAwait(false);
                             }                                
                             
@@ -341,7 +341,7 @@ namespace TCPServer
                 }
                 catch (Exception ex)
                 {
-                    ShowMessage($"Failed:{step} of SYNC  IMEI1={state.IMEI1}/IP={state.IP} @{DateTime.Now}", ConsoleColor.Red, ConsoleColor.Green, state.IMEI1);                    
+                    ShowMessage($"Failed:{step} of SYNC  IMEI1={state.IMEI1}/IP={state.IP}", ConsoleColor.Red, ConsoleColor.Green, state.IMEI1);                    
                     _ = LogErrorAsync(ex, $"Failed { step} of Sync Process on IMEI1{ state.IMEI1}", $"IMEI ={state.IMEI1} IP= {state.IP}").ConfigureAwait(false);
                     tx.Rollback();
                     result = false;
@@ -427,7 +427,7 @@ namespace TCPServer
                                         var msg = ($"SYN#\"SId\":{syncMasterId}#\"Rest\":\"{TcpSettings.Rest}\"#\"TimeZone\":\"{timeZone}\"#");
                                         var content = msg.Encrypt("sample_shared_secret");
                                         AsynchronousSocketListener.Send(state.workSocket, TcpSettings.VIKey + " ," + content);
-                                        ShowMessage($"Send SYNC IMEI1={state.IMEI1}/IP={state.IP},TimZone={timeZone} @{DateTime.Now}", ConsoleColor.Yellow, ConsoleColor.Green, state.IMEI1);                                        
+                                        ShowMessage($"Send SYNC IMEI1={state.IMEI1}/IP={state.IP},TimZone={timeZone}", ConsoleColor.Yellow, ConsoleColor.Green, state.IMEI1);                                        
                                         _ = LogErrorAsync(new Exception($"Send Sync IMEI1{state.IMEI1}"), msg, $"IMEI ={state.IMEI1} IP= {state.IP}").ConfigureAwait(false);
                                     }
                                 }
@@ -437,7 +437,7 @@ namespace TCPServer
                 }
                 catch (Exception ex)
                 {
-                    ShowMessage($"Don't Send SYNC IMEI1={state.IMEI1}/IP={state.IP} @{DateTime.Now}", ConsoleColor.Red, ConsoleColor.Green, state.IMEI1);
+                    ShowMessage($"Don't Send SYNC IMEI1={state.IMEI1}/IP={state.IP}", ConsoleColor.Red, ConsoleColor.Green, state.IMEI1);
                     _ = LogErrorAsync(ex, ex.Message, $"IMEI ={state.IMEI1} IP= {state.IP}").ConfigureAwait(false);
                     tx.Rollback();
                 }
@@ -585,7 +585,7 @@ namespace TCPServer
 
                         var content = msg.Encrypt("sample_shared_secret");
                         AsynchronousSocketListener.Send(state.workSocket, TcpSettings.VIKey + " ," + content);
-                        ShowMessage($"Send USSD To IMEI1={state.IMEI1}/IMEI2 ={state.IMEI2}/IP={state.IP} @{DateTime.Now}", ConsoleColor.Yellow, ConsoleColor.Green, state.IMEI1);
+                        ShowMessage($"Send USSD To IMEI1={state.IMEI1}/IMEI2 ={state.IMEI2}/IP={state.IP}", ConsoleColor.Yellow, ConsoleColor.Green, state.IMEI1);
                         _ = LogErrorAsync(new Exception($"Send USSD To IMEI1={state.IMEI1},IMEI2={state.IMEI2}"), msg, $"IMEI ={state.IMEI1},IMEI2={state.IMEI2} IP= {state.IP}").ConfigureAwait(false);
                         try
                         {
@@ -611,7 +611,7 @@ namespace TCPServer
                 }
                 catch (Exception ex)
                 {
-                    ShowMessage($"Don't Send USSD IMEI1={state.IMEI1}/IMEI2 ={state.IMEI2}/IP={state.IP} @{DateTime.Now}", ConsoleColor.Red, ConsoleColor.Green, state.IMEI1);                    
+                    ShowMessage($"Don't Send USSD IMEI1={state.IMEI1}/IMEI2 ={state.IMEI2}/IP={state.IP}", ConsoleColor.Red, ConsoleColor.Green, state.IMEI1);                    
                     _ = LogErrorAsync(ex, ex.Message, $"IMEI ={state.IMEI1},IMEI2={state.IMEI2} IP= {state.IP}").ConfigureAwait(false);
                 }
                 finally
@@ -668,7 +668,7 @@ namespace TCPServer
                 if (!string.IsNullOrEmpty(paramArray[2].Split(':')[1]))
                 {
                     int.TryParse(paramArray[2].Split(':')[1], out int definedTestMachineId);
-                    ShowMessage($"Time Error In Test.DefinedTestMachineId= {definedTestMachineId} has Error in Date/Time>>> \n>>> IMEI1={state.IMEI1}/IP={state.IP} @{DateTime.Now}", ConsoleColor.Red, ConsoleColor.Green, state.IMEI1);                    
+                    ShowMessage($"Time Error In Test.DefinedTestMachineId= {definedTestMachineId} has Error in Date/Time>>> \n>>> IMEI1={state.IMEI1}/IP={state.IP}", ConsoleColor.Red, ConsoleColor.Green, state.IMEI1);                    
                     await StopSendTest(definedTestMachineId).ConfigureAwait(false);
                 }
             }
@@ -719,7 +719,7 @@ namespace TCPServer
                 double lat = 0, lon = 0;
                 if (!string.IsNullOrEmpty(paramArray[5]) && paramArray[5].ToLower() != "nan")
                 {
-                    ShowMessage($"Get LOC From IMEI1={state.IMEI1}/IP={state.IP} @{DateTime.Now}  serverUtcTime= @{DateTime.UtcNow}", ConsoleColor.DarkGray, ConsoleColor.Green, state.IMEI1);                    
+                    ShowMessage($"Get LOC From IMEI1={state.IMEI1}/IP={state.IP}", ConsoleColor.DarkGray, ConsoleColor.Green, state.IMEI1);                    
                     if (paramArray[7].Split(':')[1] != ",,,,,,,,")
                     {
                         var gpsTmp = paramArray[7].Split(':')[1];
@@ -760,7 +760,7 @@ namespace TCPServer
         }
         private static void ProcessLowBatteryDevice(StateObject state, string[] paramArray)
         {
-            ShowMessage($"Device by IMEI1={state.IMEI1}/IP={state.IP} Low Battey. @{DateTime.Now}  serverUtcTime= @{DateTime.UtcNow}", ConsoleColor.DarkGray, ConsoleColor.Green, state.IMEI1);            
+            ShowMessage($"Device by IMEI1={state.IMEI1}/IP={state.IP} Low Battey", ConsoleColor.DarkGray, ConsoleColor.Green, state.IMEI1);            
         }
 
         /// <summary>
@@ -797,7 +797,7 @@ namespace TCPServer
                                         command.Parameters.AddWithValue("@Reciever", "Server");
                                         connection.Open();
                                         await command.ExecuteScalarAsync().ConfigureAwait(false);
-                                        ShowMessage($"Get RPL from IMEI1={stateobject.IMEI1}/IP={stateobject.IP} @{DateTime.Now}  serverUtcTime= @{DateTime.UtcNow}", ConsoleColor.Yellow, ConsoleColor.Green, stateobject.IMEI1);
+                                        ShowMessage($"Get RPL from IMEI1={stateobject.IMEI1}/IP={stateobject.IP}", ConsoleColor.Yellow, ConsoleColor.Green, stateobject.IMEI1);
                                     }
                                 }
                                 catch (Exception ex)
@@ -885,7 +885,7 @@ namespace TCPServer
                                         command.Parameters.AddWithValue("@Reciever", "Server");
                                         connection.Open();
                                         await command.ExecuteScalarAsync().ConfigureAwait(false);
-                                        ShowMessage($"Get UPR from IMEI1={stateobject.IMEI1}/IP={stateobject.IP} @{DateTime.Now}  serverUtcTime= @{DateTime.UtcNow}", ConsoleColor.Yellow, ConsoleColor.Green, stateobject.IMEI1);                                        
+                                        ShowMessage($"Get UPR from IMEI1={stateobject.IMEI1}/IP={stateobject.IP}", ConsoleColor.Yellow, ConsoleColor.Green, stateobject.IMEI1);                                        
                                     }
                                 }
                                 catch (Exception ex)
@@ -919,7 +919,7 @@ namespace TCPServer
                                             //{
                                             await command.ExecuteScalarAsync().ConfigureAwait(false);
                                             AsynchronousSocketListener.Send(stateobject.workSocket, TcpSettings.VIKey + " ," + content);
-                                            ShowMessage($"Send RPL To IMEI1={stateobject.IMEI1}/IP={stateobject.IP} @{DateTime.Now}  serverUtcTime= @{DateTime.UtcNow}", ConsoleColor.Yellow, ConsoleColor.Green, stateobject.IMEI1);                                           
+                                            ShowMessage($"Send RPL To IMEI1={stateobject.IMEI1}/IP={stateobject.IP}", ConsoleColor.Yellow, ConsoleColor.Green, stateobject.IMEI1);                                           
                                             //}
                                         }
                                     }
@@ -953,7 +953,7 @@ namespace TCPServer
                                             //{
                                             await command.ExecuteScalarAsync().ConfigureAwait(false);
                                             AsynchronousSocketListener.Send(stateobject.workSocket, TcpSettings.VIKey + " ," + content);
-                                            ShowMessage($"Send FSE To IMEI1={stateobject.IMEI1}/IP={stateobject.IP}**File Size has Error**.@{DateTime.Now}  serverUtcTime= @{DateTime.UtcNow}", ConsoleColor.Yellow, ConsoleColor.Green, stateobject.IMEI1);
+                                            ShowMessage($"Send FSE To IMEI1={stateobject.IMEI1}/IP={stateobject.IP}**File Size has Error**", ConsoleColor.Yellow, ConsoleColor.Green, stateobject.IMEI1);
                                             //}
                                         }
 
@@ -1089,7 +1089,7 @@ namespace TCPServer
                                         command.Parameters.AddWithValue("@Reciever", "Server");
                                         connection.Open();
                                         await command.ExecuteScalarAsync().ConfigureAwait(false);
-                                        ShowMessage($"Get UPG from  IMEI1={stateobject.IMEI1}/IP={stateobject.IP} @{DateTime.Now}  serverUtcTime= @{DateTime.UtcNow}", ConsoleColor.Yellow, ConsoleColor.Green, stateobject.IMEI1);                                        
+                                        ShowMessage($"Get UPG from  IMEI1={stateobject.IMEI1}/IP={stateobject.IP}", ConsoleColor.Yellow, ConsoleColor.Green, stateobject.IMEI1);                                        
                                     }
                                 }
 
@@ -2191,7 +2191,7 @@ namespace TCPServer
                     {
                         _ = Util.UpdateMachineState(state.IMEI1, state.IMEI2, true);
                     }
-                    ShowMessage($"Get MID FRom  IMEI1={state.IMEI1}/IP={state.IP} @{DateTime.Now}  serverUtcTime= @{DateTime.UtcNow}", ConsoleColor.Cyan, ConsoleColor.Green, state.IMEI1);                   
+                    ShowMessage($"Get MID FRom  IMEI1={state.IMEI1}/IP={state.IP}", ConsoleColor.Cyan, ConsoleColor.Green, state.IMEI1);                   
                     // _ = Util.SyncDevice(state);
                 }
 
@@ -2280,7 +2280,7 @@ namespace TCPServer
                     if (AsynchronousSocketListener.SendedTest.Find(t => t.Contains(content)) == null)
                     {
                         AsynchronousSocketListener.Send(stateObject.workSocket, TcpSettings.VIKey + " ," + content);
-                        ShowMessage($"Send Test To IMEI1={stateObject.IMEI1}/IP={stateObject.IP} @{DateTime.Now}  serverUtcTime= @{DateTime.UtcNow}", ConsoleColor.White, ConsoleColor.Green, stateObject.IMEI1);
+                        ShowMessage($"Send Test To IMEI1={stateObject.IMEI1}/IP={stateObject.IP}", ConsoleColor.White, ConsoleColor.Green, stateObject.IMEI1);
                     }
                 }
             }
@@ -2344,7 +2344,7 @@ namespace TCPServer
                     if (AsynchronousSocketListener.SendedTest.Find(t => t.Contains(content)) == null)
                     {
                         AsynchronousSocketListener.Send(stateObject.workSocket, TcpSettings.VIKey + " ," + content);
-                        ShowMessage($"Send Test To IMEI1={stateObject.IMEI1}/IP={stateObject.IP} @{DateTime.Now}  serverUtcTime= @{DateTime.UtcNow}", ConsoleColor.White, ConsoleColor.Green, stateObject.IMEI1);
+                        ShowMessage($"Send Test To IMEI1={stateObject.IMEI1}/IP={stateObject.IP}", ConsoleColor.White, ConsoleColor.Green, stateObject.IMEI1);
                         _ = LogErrorAsync(new Exception("Send Test"), content, string.Join("-", item));
                     }
                 }
@@ -2398,7 +2398,7 @@ namespace TCPServer
                             {
                                 connection.Open();
                                 sql = await Trans_AddVersionDetail(stateObject, curReq, connection, sql, content);
-                                ShowMessage($"Send UPD To IMEI1={stateObject.IMEI1}/IP={stateObject.IP} @{DateTime.Now}  serverUtcTime= @{DateTime.UtcNow}", ConsoleColor.Yellow, ConsoleColor.Green, stateObject.IMEI1);                                
+                                ShowMessage($"Send UPD To IMEI1={stateObject.IMEI1}/IP={stateObject.IP}", ConsoleColor.Yellow, ConsoleColor.Green, stateObject.IMEI1);                                
                                 _ = Util.LogErrorAsync(new Exception($"UPD Send To IMEI1=  {stateObject.IMEI1}"), content, $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
                             }
                         }
@@ -2438,7 +2438,7 @@ namespace TCPServer
                                         if (AsynchronousSocketListener.DeviceList.Exists(x => x.IMEI1 == stateObject.IMEI1))
                                         {
                                             sql = await Trans_AddVersionDetail(stateObject, curReq, connection, sql, content);
-                                            ShowMessage($"Send UPD To IMEI1={stateObject.IMEI1}/IP={stateObject.IP} @{DateTime.Now}  serverUtcTime= @{DateTime.UtcNow}", ConsoleColor.Yellow, ConsoleColor.Green, stateObject.IMEI1);                                            
+                                            ShowMessage($"Send UPD To IMEI1={stateObject.IMEI1}/IP={stateObject.IP}", ConsoleColor.Yellow, ConsoleColor.Green, stateObject.IMEI1);                                            
                                             _ = Util.LogErrorAsync(new Exception($"UPD Send To IMEI1=  {stateObject.IMEI1}"), content, $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
                                         }
                                     }
@@ -2479,7 +2479,7 @@ namespace TCPServer
                                                     if (AsynchronousSocketListener.DeviceList.Exists(x => x.IMEI1 == stateObject.IMEI1))
                                                     {
                                                         sql = await Trans_AddVersionDetail(stateObject, curReq, connection, sql, content);
-                                                        ShowMessage($"Send UPD To IMEI1={stateObject.IMEI1}/IP={stateObject.IP} @{DateTime.Now}  serverUtcTime= @{DateTime.UtcNow}", ConsoleColor.Yellow, ConsoleColor.Green, stateObject.IMEI1);                                                       
+                                                        ShowMessage($"Send UPD To IMEI1={stateObject.IMEI1}/IP={stateObject.IP}", ConsoleColor.Yellow, ConsoleColor.Green, stateObject.IMEI1);                                                       
                                                         _ = Util.LogErrorAsync(new Exception($"UPD Send To IMEI1={stateObject.IMEI1} IP={stateObject.IP}"), content, $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
                                                     }
                                                 }
@@ -2579,7 +2579,7 @@ namespace TCPServer
                     com3.Parameters.AddWithValue("@VersionId", item[0]["Id"].ToString());
                     id = await com3.ExecuteScalarAsync().ConfigureAwait(false);
                     tx.Commit();
-                    ShowMessage($"Send UPD To IMEI1={IMEI1} again.Beacuse device Don't Respond @{DateTime.Now} ", ConsoleColor.Yellow, ConsoleColor.Green, IMEI1);                   
+                    ShowMessage($"Send UPD To IMEI1={IMEI1} again.Beacuse device Don't Respond ", ConsoleColor.Yellow, ConsoleColor.Green, IMEI1);                   
                     _ = Util.LogErrorAsync(new Exception("Send UPD To Device after 2 minute again"), "Send UPD To Device after 2 minute again", IMEI1).ConfigureAwait(false);
                 }
                 catch (Exception ex)
@@ -2823,7 +2823,7 @@ namespace TCPServer
             {
                 Console.ForegroundColor = colorBefore;
                 ConsolePrint.PrintLine('*');                
-                Console.WriteLine(ConsolePrint.AlignCentre($"{msg}"),);
+                Console.WriteLine(ConsolePrint.AlignCentre($"{msg} @{DateTime.Now.ToString("yyyy/M/d HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)} ,ServerUTC{DateTime.UtcNow}"));
                 //ConsolePrint.PrintLine('*');
                 Console.ForegroundColor = colorAfter;
             }
