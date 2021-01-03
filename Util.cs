@@ -49,7 +49,6 @@ namespace TCPServer
                         ProcessLowBatteryDevice(state, paramArray);
                         break;
                     case "LOC": //for show Gps Device every 50 second ... --omid added 990220//هر پنجاه ثانیه یکبار جی پی اس از دستگاه دریافت میشود//addby omid
-
                         _ = ProcessLoCDevice(state, paramArray);
                         break;
                     case "FLD": //اگر زمان پایان یا شروغ تست درست تعریف نشده باشد این پیام دریافت میگردد که باید تست را تمام شده در نظرگرفت//addby omid
@@ -278,7 +277,7 @@ namespace TCPServer
             }
             catch (Exception ex)
             {
-                _ = LogErrorAsync(ex, "100 --Method-- ProcessFLDDevice-StopSendTest").ConfigureAwait(false);
+                _ = LogErrorAsync(ex, "100  ProcessFLDDevice-StopSendTest").ConfigureAwait(false);
             }
         }
         private async static Task<bool> UpdateMasterDetailSync(StateObject state, int syncMasterId, string step, bool? iscompeleted = null)
@@ -600,7 +599,7 @@ namespace TCPServer
                         }
                         catch (Exception ex)
                         {
-                            _ = LogErrorAsync(ex, "405 --Method-- SendUSS-Update MachineUssd").ConfigureAwait(false);
+                            _ = LogErrorAsync(ex, "405  SendUSS-Update MachineUssd").ConfigureAwait(false);
                         }
                         finally
                         {
@@ -698,7 +697,7 @@ namespace TCPServer
                 }
                 catch (Exception ex)
                 {
-                    _ = LogErrorAsync(ex, "100 --Method-- ProcessFLDDevice-StopSendTest").ConfigureAwait(false);
+                    _ = LogErrorAsync(ex, "100  ProcessFLDDevice-StopSendTest").ConfigureAwait(false);
                 }
                 finally
                 {
@@ -803,7 +802,7 @@ namespace TCPServer
                                 catch (Exception ex)
                                 {
 
-                                    _ = LogErrorAsync(ex, "100 --Method-- ProcessRPLRecievedContent", $"IMEI1={stateobject.IMEI1} Ip={stateobject.IP}").ConfigureAwait(false);
+                                    _ = LogErrorAsync(ex, "100  ProcessRPLRecievedContent", $"IMEI1={stateobject.IMEI1} Ip={stateobject.IP}").ConfigureAwait(false);
                                 }
                                 finally
                                 {
@@ -829,7 +828,7 @@ namespace TCPServer
                                 }
                                 catch (Exception ex)
                                 {
-                                    _ = LogErrorAsync(ex, "165 --Method-- ProcessRPLRecievedContent", $"IMEI1={stateobject.IMEI1} Ip={stateobject.IP}").ConfigureAwait(false);
+                                    _ = LogErrorAsync(ex, "165  ProcessRPLRecievedContent", $"IMEI1={stateobject.IMEI1} Ip={stateobject.IP}").ConfigureAwait(false);
                                 }
                                 finally
                                 {
@@ -841,13 +840,13 @@ namespace TCPServer
                     catch (Exception ex)
                     {
 
-                        _ = LogErrorAsync(ex, "176 --Method-- ProcessRPLRecievedContent", $"IMEI1={stateobject.IMEI1} Ip={stateobject.IP}").ConfigureAwait(false);
+                        _ = LogErrorAsync(ex, "176  ProcessRPLRecievedContent", $"IMEI1={stateobject.IMEI1} Ip={stateobject.IP}").ConfigureAwait(false);
                     }
                 }
             }
             catch (Exception ex)
             {
-                _ = LogErrorAsync(ex, "182 --Method-- ProcessRPLRecievedContent", $"IMEI1={stateobject.IMEI1} Ip={stateobject.IP}").ConfigureAwait(false);
+                _ = LogErrorAsync(ex, "182  ProcessRPLRecievedContent", $"IMEI1={stateobject.IMEI1} Ip={stateobject.IP}").ConfigureAwait(false);
             }
         }
         /// <summary>
@@ -890,7 +889,7 @@ namespace TCPServer
                                 }
                                 catch (Exception ex)
                                 {
-                                    _ = LogErrorAsync(ex, "225 -Method-- ProcessUPRRecievedContent", $"IMEI1={stateobject.IMEI1} Ip={stateobject.IP}").ConfigureAwait(false);
+                                    _ = LogErrorAsync(ex, "225  ProcessUPRRecievedContent", $"IMEI1={stateobject.IMEI1} Ip={stateobject.IP}").ConfigureAwait(false);
                                 }
                                 finally
                                 {
@@ -925,7 +924,7 @@ namespace TCPServer
                                     }
                                     catch (Exception ex)
                                     {
-                                        _ = LogErrorAsync(ex, "262 -Method-- ProcessUPRRecievedContent", $"IMEI1={stateobject.IMEI1} Ip={stateobject.IP}").ConfigureAwait(false);
+                                        _ = LogErrorAsync(ex, "262  ProcessUPRRecievedContent", $"IMEI1={stateobject.IMEI1} Ip={stateobject.IP}").ConfigureAwait(false);
                                     }
                                     finally
                                     {
@@ -960,7 +959,7 @@ namespace TCPServer
                                     }
                                     catch (Exception ex)
                                     {
-                                        _ = LogErrorAsync(ex, "303 -- Method -- ProcessUPRRecievedContent", $"IMEI1={stateobject.IMEI1} Ip={stateobject.IP}").ConfigureAwait(false);
+                                        _ = LogErrorAsync(ex, "303  ProcessUPRRecievedContent", $"IMEI1={stateobject.IMEI1} Ip={stateobject.IP}").ConfigureAwait(false);
                                     }
                                     finally
                                     {
@@ -973,13 +972,13 @@ namespace TCPServer
                     }
                     catch (Exception ex)
                     {
-                        _ = LogErrorAsync(ex, "316 -- Method -- ProcessUPRRecievedContent", $"IMEI1={stateobject.IMEI1} Ip={stateobject.IP}").ConfigureAwait(false);
+                        _ = LogErrorAsync(ex, "316  ProcessUPRRecievedContent", $"IMEI1={stateobject.IMEI1} Ip={stateobject.IP}").ConfigureAwait(false);
                     }
                 }
             }
             catch (Exception ex)
             {
-                _ = LogErrorAsync(ex, "322 -Method-- ProcessUPRRecievedContent", $"IMEI1={stateobject.IMEI1} Ip={stateobject.IP}").ConfigureAwait(false);
+                _ = LogErrorAsync(ex, "322  ProcessUPRRecievedContent", $"IMEI1={stateobject.IMEI1} Ip={stateobject.IP}").ConfigureAwait(false);
             }
         }
         /// <summary>
@@ -1014,7 +1013,7 @@ namespace TCPServer
                 }
                 catch (Exception ex)
                 {
-                    _ = LogErrorAsync(ex, "362 -Method-- CheckFileSize", $"FileSizeFromDevice>>{ FileSize} ,SizeFromDb>>{ SelectedVersion}");
+                    _ = LogErrorAsync(ex, "362  CheckFileSize", $"FileSizeFromDevice>>{ FileSize} ,SizeFromDb>>{ SelectedVersion}");
                 }
                 finally
                 {
@@ -1095,7 +1094,7 @@ namespace TCPServer
 
                                 catch (Exception ex)
                                 {
-                                    _ = LogErrorAsync(ex, "430 --Method-- ProcessUPGRecievedContent", $"IMEI1={stateobject.IMEI1} Ip={stateobject.IP}").ConfigureAwait(false);
+                                    _ = LogErrorAsync(ex, "430  ProcessUPGRecievedContent", $"IMEI1={stateobject.IMEI1} Ip={stateobject.IP}").ConfigureAwait(false);
                                 }
                                 finally
                                 {
@@ -1106,13 +1105,13 @@ namespace TCPServer
                     }
                     catch (Exception ex)
                     {
-                        _ = LogErrorAsync(ex, "412 -Method-- ProcessUPGRecievedContent", $"IMEI1={stateobject.IMEI1} Ip={stateobject.IP}").ConfigureAwait(false);
+                        _ = LogErrorAsync(ex, "412  ProcessUPGRecievedContent", $"IMEI1={stateobject.IMEI1} Ip={stateobject.IP}").ConfigureAwait(false);
                     }
                 }
             }
             catch (Exception ex)
             {
-                _ = LogErrorAsync(ex, "407 -Method-- ProcessUPGRecievedContent", $"IMEI1={stateobject.IMEI1} Ip={stateobject.IP}").ConfigureAwait(false);
+                _ = LogErrorAsync(ex, "407  ProcessUPGRecievedContent", $"IMEI1={stateobject.IMEI1} Ip={stateobject.IP}").ConfigureAwait(false);
             }
         }
         /// <summary>
@@ -1143,8 +1142,14 @@ namespace TCPServer
                     else
                     {
                         string createDate = string.Empty;
-                        bool isLoopingParam = false;string witchTest = string.Empty;
-                        string[] tParam = new string[2]; string[] ActiveParam = new string[2]; string[] SyncParam = new string[2]; string[] AsyncParam = new string[2];
+                        double lon = 0;
+                        double lat = 0;
+                        bool isLoopingParam = false;
+                        string witchTest = string.Empty;
+                        string[] tParam = new string[2];
+                        string[] ActiveParam = new string[2]; 
+                        string[] SyncParam = new string[2]; 
+                        string[] AsyncParam = new string[2];
                         int TestId = 0; //omid added --981121                        
                         string inseretStatment = "insert into TestResult(";
                         string valueStatmenet = "Values(";
@@ -1160,8 +1165,7 @@ namespace TCPServer
                                         int i;
                                         if (t[0] == "GPS")
                                         {
-                                            double lon = 0;
-                                            double lat = 0;
+                                           
                                             //omid updated--98-11-28 , for nan value GPS
                                             if (!string.IsNullOrEmpty(t[1]) && t[1].ToLower() != "nan")
                                             {
@@ -1249,17 +1253,17 @@ namespace TCPServer
                                         else if (t[0].Contains("SyncNeighborSET") )
                                         {
                                             if (t[1] != "NULL")
-                                            {                                               
+                                            {
                                                 isLoopingParam = true;
                                                 witchTest = "ActiveSet";
-                                                SyncParam = t;
+                                                SyncParam = t;                                                
                                             }                                          
                                         }
                                         else if (t[0].Contains("AsyncNeighborSET") && t[1] != "NULL")
-                                        {                                            
-                                            isLoopingParam = true;
-                                            witchTest = "ActiveSet";
-                                            AsyncParam = t;
+                                        {
+                                              isLoopingParam = true;
+                                              witchTest = "ActiveSet";
+                                              AsyncParam = t;                                              
                                         }
                                         else
                                         {
@@ -1305,9 +1309,9 @@ namespace TCPServer
                                     if(ActiveParam[0]!=null)
                                         _= ActiveSet(inseretStatment, valueStatmenet, ActiveParam, TestId, createDate, state);
                                     if (SyncParam[0] != null)
-                                        _ = NeighborSet(SyncType.Async, inseretStatment, valueStatmenet, SyncParam, TestId, createDate, state);
+                                        _ = NeighborSet(SyncType.Sync, SyncParam, TestId, createDate, lat, lon, state);
                                     if (AsyncParam[0] != null)
-                                        _ = NeighborSet(SyncType.Sync, inseretStatment, valueStatmenet, AsyncParam, TestId, createDate, state);
+                                        _ = NeighborSet(SyncType.Async, AsyncParam, TestId, createDate, lat, lon, state);
                                     break;
                                 case "TraceRoute":
                                       _= TraceRoute(inseretStatment, valueStatmenet, tParam, TestId, createDate, state);
@@ -1323,46 +1327,65 @@ namespace TCPServer
             }
             catch (Exception ex)
             {
-                _ = LogErrorAsync(ex, "1436 --Method-- ProcessTSCRecievedContent", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
+                _ = LogErrorAsync(ex, "1436  ProcessTSCRecievedContent", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
             }
         }
-        private static async Task NeighborSet(SyncType SType, string insertStatment, string valueStatmenet, string[] t, int TestId, string CreateDate, StateObject state)
+        private static async Task NeighborSet(SyncType SType, string[] t, int TestId, string CreateDate,double lat, double lon, StateObject state)
         {
-            valueStatmenet = valueStatmenet.Replace("Values", "");
-            insertStatment =  insertStatment.Replace("TestResult", "TestResultNeighbor");
-            string tmpvalue = string.Empty, fn = string.Empty;
-            insertStatment += $"SyncType,SetNumber,Sttd,TotECIO,WinSize,RegisterDate) values ";
+            
+            string insertStatment = $"insert into TestResultNeighbor (TestId,lat,long,CreateDate,SyncType,SetNumber" +
+                                    $",Psc,UARFCN,SSC,Sttd,TotECIO,ECIO,Rscp,WinSize,RegisterDate) values";
+            string valueStatmenet = $" ({TestId},{lat},{lon},'{CreateDate}',";
+           string fn = string.Empty;            
             var ActSets = t[1].Split(',');
             if (int.TryParse(ActSets[0], out int LoopOfActSet))
-            {
+            {                
                 if (LoopOfActSet > 0)
                 {
                     if (LoopOfActSet == 1)
                     {
-                        fn = valueStatmenet + $"{(SType==SyncType.Async?"'Async'":"'Sync'")},{LoopOfActSet},";
-                        var totEcio = Convert.ToDouble(ActSets[5]); totEcio *= -1;
-                        fn += $"{Convert.ToDouble(ActSets[4])}," +
-                            $"{totEcio},{Convert.ToDouble(ActSets[8])}," +
-                            $"{Convert.ToDouble(ActSets[10])},'{DateTime.Now}')";
+                        try
+                        {
+                            fn = valueStatmenet + $"{(SType == SyncType.Async ? "'Async'" : "'Sync'")},{LoopOfActSet},{Convert.ToInt32(ActSets[1])}," +
+                                $"{Convert.ToInt32(ActSets[2])},{Convert.ToInt32(ActSets[3])},{Convert.ToDouble(ActSets[4])},{Convert.ToDouble(ActSets[5]) * -1}," +
+                                $"{ Convert.ToDouble(ActSets[6]) * -1},{ Convert.ToDouble(ActSets[7])},{ Convert.ToDouble(ActSets[8])},'{DateTime.Now}')";
+                        }
+                        catch(Exception ex)
+                        {
+                            _ = LogErrorAsync(ex, "1352  NeighborSet. Convert Params has Error", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
+                        }
                     }
                     else
                     {
                         int stIndex = 1;
                         for (int i = 1; i <= LoopOfActSet; i++)
                         {
-                                tmpvalue = valueStatmenet + $"{(SType == SyncType.Async ? "'Async'" : "'Sync'")},{LoopOfActSet},";
-                                var totEcio = Convert.ToDouble(ActSets[stIndex + 4]); totEcio *= -1;
-                                if (i == LoopOfActSet)
+                            string tmpvalue = valueStatmenet + $"{(SType == SyncType.Async ? "'Async'" : "'Sync'")},{LoopOfActSet},";
+                            if (i == LoopOfActSet)
                                 {
-                                    tmpvalue += $"{Convert.ToDouble(ActSets[stIndex + 3])}," +
-                                        $"{totEcio}," +
-                                        $"{Convert.ToDouble(ActSets[stIndex + 7])},'{DateTime.Now}')";
+                                        try
+                                        {
+                                            tmpvalue += $"{ Convert.ToInt32(ActSets[stIndex])}," +
+                                                $"{Convert.ToInt32(ActSets[stIndex + 1])},{Convert.ToInt32(ActSets[stIndex + 2])},{Convert.ToDouble(ActSets[stIndex + 3])},{Convert.ToDouble(ActSets[stIndex + 4]) * -1}," +
+                                                $"{ Convert.ToDouble(ActSets[stIndex + 5]) * -1},{ Convert.ToDouble(ActSets[stIndex + 6])},{ Convert.ToDouble(ActSets[stIndex + 7])},'{DateTime.Now}')";
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            _ = LogErrorAsync(ex, "1371 NeighborSet. Convert Params has Error", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
+                                        }
                                 }
                                 else
                                 {
-                                    tmpvalue += $"{Convert.ToDouble(ActSets[stIndex + 3])}," +
-                                        $"{totEcio}," +
-                                        $"{Convert.ToDouble(ActSets[stIndex + 7])},'{DateTime.Now}'),";
+                                        try
+                                        {
+                                            tmpvalue += $"{ Convert.ToInt32(ActSets[stIndex])}," +
+                                               $"{Convert.ToInt32(ActSets[stIndex + 1])},{Convert.ToInt32(ActSets[stIndex + 2])},{Convert.ToDouble(ActSets[stIndex + 3])},{Convert.ToDouble(ActSets[stIndex + 4]) * -1}," +
+                                               $"{Convert.ToDouble(ActSets[stIndex + 5]) * -1},{ Convert.ToDouble(ActSets[stIndex + 6])},{ Convert.ToDouble(ActSets[stIndex + 7])},'{DateTime.Now}'),";
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            _ = LogErrorAsync(ex, "1384  NeighborSet. Convert Params has Error", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
+                                        }
                                 }                          
                                 fn += tmpvalue;
                                 stIndex += 8;
@@ -1374,7 +1397,7 @@ namespace TCPServer
                     }
                     catch (Exception ex)
                     {
-                        _ = LogErrorAsync(ex, "1491 --Method-- NeighborSet", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
+                        _ = LogErrorAsync(ex, "1491  NeighborSet", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
                     }
                 }
 
@@ -1407,10 +1430,17 @@ namespace TCPServer
                 {
                     if (LoopOfActSet == 1)
                     {
-                        fn = valueStatmenet + $"{LoopOfActSet},";                        
-                        fn += $"{Convert.ToDouble(ActSets[1])},{Convert.ToDouble(ActSets[2])},{Convert.ToDouble(ActSets[3])},{Convert.ToDouble(ActSets[4])}," +
-                            $"{Convert.ToDouble(ActSets[5])*-1},{Convert.ToDouble(ActSets[6])*-1},{Convert.ToDouble(ActSets[7]) * -1},{Convert.ToDouble(ActSets[8])}," +
-                            $"{Convert.ToDouble(ActSets[9])},{Convert.ToDouble(ActSets[10])},'{DateTime.Now}')";
+                        fn = valueStatmenet + $"{LoopOfActSet},";
+                        try
+                        {
+                            fn += $"{Convert.ToDouble(ActSets[1])},{Convert.ToDouble(ActSets[2])},{Convert.ToDouble(ActSets[3])},{Convert.ToDouble(ActSets[4])}," +
+                                $"{Convert.ToDouble(ActSets[5]) * -1},{Convert.ToDouble(ActSets[6]) * -1},{Convert.ToDouble(ActSets[7]) * -1},{Convert.ToDouble(ActSets[8])}," +
+                                $"{Convert.ToDouble(ActSets[9])},{Convert.ToDouble(ActSets[10])},'{DateTime.Now}')";
+                        }
+                        catch (Exception ex)
+                        {
+                            _ = LogErrorAsync(ex, "1439 ActiveSet. Convert Params has Error", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
+                        }
                     }
                     else
                     {
@@ -1423,17 +1453,31 @@ namespace TCPServer
                                 tmpvalue = valueStatmenet + $"{LoopOfActSet},";
                                 if (j == 10)
                                 {
-                                    tmpvalue += $"{Convert.ToDouble(ActSets[stIndex])},{Convert.ToDouble(ActSets[stIndex+1])},{Convert.ToDouble(ActSets[stIndex+2])},{Convert.ToDouble(ActSets[stIndex+3])}," +
-                                                $"{Convert.ToDouble(ActSets[stIndex+4])*-1},{Convert.ToDouble(ActSets[stIndex+5])*-1},{Convert.ToDouble(ActSets[stIndex+6])*-1}," +
-                                                $"{Convert.ToDouble(ActSets[stIndex+7])},{Convert.ToDouble(ActSets[stIndex+8])},{Convert.ToDouble(ActSets[stIndex+9])}," +
-                                                $"'{DateTime.Now}')";
+                                    try
+                                    {
+                                        tmpvalue += $"{Convert.ToDouble(ActSets[stIndex])},{Convert.ToDouble(ActSets[stIndex + 1])},{Convert.ToDouble(ActSets[stIndex + 2])},{Convert.ToDouble(ActSets[stIndex + 3])}," +
+                                                    $"{Convert.ToDouble(ActSets[stIndex + 4]) * -1},{Convert.ToDouble(ActSets[stIndex + 5]) * -1},{Convert.ToDouble(ActSets[stIndex + 6]) * -1}," +
+                                                    $"{Convert.ToDouble(ActSets[stIndex + 7])},{Convert.ToDouble(ActSets[stIndex + 8])},{Convert.ToDouble(ActSets[stIndex + 9])}," +
+                                                    $"'{DateTime.Now}')";
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        _ = LogErrorAsync(ex, "1462 ActiveSet. Convert Params has Error", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
+                                    }
                                 }
                                 else
                                 {
-                                    tmpvalue += $"{Convert.ToDouble(ActSets[stIndex])},{Convert.ToDouble(ActSets[stIndex + 1])},{Convert.ToDouble(ActSets[stIndex + 2])},{Convert.ToDouble(ActSets[stIndex + 3])}," +
-                                                $"{Convert.ToDouble(ActSets[stIndex + 4]) * -1},{Convert.ToDouble(ActSets[stIndex + 5]) * -1},{Convert.ToDouble(ActSets[stIndex + 6]) * -1}," +
-                                                $"{Convert.ToDouble(ActSets[stIndex + 7])},{Convert.ToDouble(ActSets[stIndex + 8])},{Convert.ToDouble(ActSets[stIndex + 9])}," +
-                                                $"'{DateTime.Now}'),";                                    
+                                    try
+                                    {
+                                        tmpvalue += $"{Convert.ToDouble(ActSets[stIndex])},{Convert.ToDouble(ActSets[stIndex + 1])},{Convert.ToDouble(ActSets[stIndex + 2])},{Convert.ToDouble(ActSets[stIndex + 3])}," +
+                                                    $"{Convert.ToDouble(ActSets[stIndex + 4]) * -1},{Convert.ToDouble(ActSets[stIndex + 5]) * -1},{Convert.ToDouble(ActSets[stIndex + 6]) * -1}," +
+                                                    $"{Convert.ToDouble(ActSets[stIndex + 7])},{Convert.ToDouble(ActSets[stIndex + 8])},{Convert.ToDouble(ActSets[stIndex + 9])}," +
+                                                    $"'{DateTime.Now}'),";
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        _ = LogErrorAsync(ex, "1476 ActiveSet. Convert Params has Error", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
+                                    }
                                 }
                             }
                             fn += tmpvalue;
@@ -1446,7 +1490,7 @@ namespace TCPServer
                     }
                     catch (Exception ex)
                     {
-                        _ = LogErrorAsync(ex, "1563 --Method-- ActiveSet", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
+                        _ = LogErrorAsync(ex, "1563 ActiveSet", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
                     }
                 }
                
@@ -1467,58 +1511,69 @@ namespace TCPServer
         /// <returns></returns>
         private static async Task TraceRoute(string insertStatment, string valueStatmenet, string[] t,int TestId,string CreateDate,StateObject state)
         {
-            valueStatmenet =  valueStatmenet.Replace("Values", "");
-            insertStatment += "TraceRoute,hop1,hop1_rtt,hop2,hop2_rtt,hop3,hop3_rtt,hop4,hop4_rtt,hop5,hop5_rtt,hop6,hop6_rtt,hop7,hop7_rtt,hop8,hop8_rtt,hop9,hop9_rtt,hop10,hop10_rtt,RegisterDate) values ";
+            var tmpVstat = valueStatmenet =  valueStatmenet.Replace("Values", "");
+            var tmpStat = insertStatment;
+            insertStatment+= "TraceRoute,";
             var dd = System.Text.RegularExpressions.Regex.Split(t[1], "traceroute");
             string tmpValue, finalvalue=string.Empty;
             for (int ii = 1; ii < dd.Length; ii++)
             {
-                var curTr = dd[ii].Split('\n');
-                //inseretStatment += "TraceRoute,";
-                tmpValue = valueStatmenet +  $"'{curTr[0]}',";
-                for (int j = 1; j < curTr.Length - 1; j++)
+                var curTr = dd[ii].Split('\n');                
+                if (curTr.Length - 1 > 1)
                 {
-                    //inseretStatment += $"hop{j},hop{j}_rtt,";
-                    var vals = curTr[j].Split(' ');
-                    if (curTr[j].Contains("*"))
+                    tmpValue = valueStatmenet + $"'{curTr[0]}',";
+                    for (int j = 1; j < curTr.Length - 1; j++)
                     {
-                        if (j == 10)
+                        insertStatment += $"hop{j},hop{j}_rtt,";
+                        var vals = curTr[j].Split(' ');
+                        if (curTr[j].Contains("*"))
                         {
-                            tmpValue += $"'{vals[2]}',{ System.Data.SqlTypes.SqlDouble.Null},'{DateTime.Now}')";
-                            if (ii == dd.Length - 1)
+                            if (j == curTr.Length - 2)
                             {
-                                finalvalue += tmpValue;
+                                insertStatment += $"RegisterDate) values";
+                                tmpValue += $"'{vals[2]}',{ System.Data.SqlTypes.SqlDouble.Null},'{DateTime.Now}')";
+                                if (ii == dd.Length - 1)
+                                {
+                                    finalvalue += tmpValue;
+                                }
+                                else
+                                {
+                                    finalvalue += tmpValue + ",";
+                                }
                             }
                             else
                             {
-                                finalvalue += tmpValue + ",";
+                                tmpValue += $"'{vals[3]}',{System.Data.SqlTypes.SqlDouble.Null},";
                             }
                         }
                         else
                         {
-                            tmpValue += $"'{vals[3]}',{System.Data.SqlTypes.SqlDouble.Null},";
-                        }
-                    }
-                    else
-                    {
-                        if (j == 10)
-                        {
-                            tmpValue += $"'{vals[2]}',{ Convert.ToDouble(vals[5])},'{DateTime.Now.ToString()}')";
-                            if (ii == dd.Length - 1)
+                            if (j == curTr.Length - 2)
                             {
-                                finalvalue += tmpValue;
+                                insertStatment += $"RegisterDate) values";
+                                tmpValue += $"'{vals[2]}',{ Convert.ToDouble(vals[5])},'{DateTime.Now.ToString()}')";
+                                if (ii == dd.Length - 1)
+                                {
+                                    finalvalue += tmpValue;
+                                }
+                                else
+                                {
+                                    finalvalue += tmpValue + ",";
+                                }
                             }
                             else
                             {
-                                finalvalue += tmpValue + ",";
+                                tmpValue += $"'{vals[3]}',{ Convert.ToDouble(vals[6])},";
                             }
                         }
-                        else
-                        {
-                            tmpValue += $"'{vals[3]}',{ Convert.ToDouble(vals[6])},";
-                        }
-                    }
 
+                    }
+                }
+                else
+                {
+                    tmpStat += "TraceRoute,RegisterDate) values ";
+                    tmpVstat +=  $"'{curTr[0]}','{DateTime.Now.ToString()}')";
+                    _= InsertTestResult($"{tmpStat} {tmpVstat}", TestId, CreateDate, state);
                 }
 
             }
@@ -1528,7 +1583,7 @@ namespace TCPServer
             }
             catch(Exception ex)
             {
-                _ = LogErrorAsync(ex, "1630 --Method-- TraceRoute", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
+                _ = LogErrorAsync(ex, "1630  TraceRoute", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
             }
         }
         
@@ -1562,13 +1617,13 @@ namespace TCPServer
                         }
                         catch (Exception ex)
                         {
-                            _ = LogErrorAsync(ex, "1664 -- Method -- Trans in Update lastTestResult in machine");
+                            _ = LogErrorAsync(ex, "1664  Trans in Update lastTestResult in machine");
                             tx.Rollback();
                         }
                     }
                     catch (Exception ex)
                     {
-                        _ = LogErrorAsync(ex, "1670 -- Method -- Insert TestResult ");
+                        _ = LogErrorAsync(ex, "1670  Insert TestResult ");
                         tx.Rollback();
                     }
                     finally
@@ -1579,7 +1634,7 @@ namespace TCPServer
             }
             catch (Exception ex)
             {
-                _ = LogErrorAsync(ex, "1681 --Method-- insertTestResult", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
+                _ = LogErrorAsync(ex, "1681  insertTestResult", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
             }
         }
         private static string[] ProcessTSCParams(string param)
@@ -2013,7 +2068,7 @@ namespace TCPServer
                         }
                         catch (Exception ex)
                         {
-                            _ = LogErrorAsync(ex, "2115 -- Method-- UpdateMachineTestStatusToFinish", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
+                            _ = LogErrorAsync(ex, "2115  UpdateMachineTestStatusToFinish", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
                         }
                     }
                 }
@@ -2032,7 +2087,7 @@ namespace TCPServer
                         }
                         catch (Exception ex)
                         {
-                            _ = LogErrorAsync(ex, " 2134 -- Method-- UpdateMachineTestStatusToFinish", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
+                            _ = LogErrorAsync(ex, " 2134  UpdateMachineTestStatusToFinish", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
                         }
                     }
                 }
@@ -2061,7 +2116,7 @@ namespace TCPServer
                             }
                             catch (Exception ex)
                             {
-                                _ = LogErrorAsync(ex, "861 -- Method-- UpdateMachineTestStatusToRunning", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
+                                _ = LogErrorAsync(ex, "861  UpdateMachineTestStatusToRunning", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
                             }
                         }
                     }
@@ -2080,7 +2135,7 @@ namespace TCPServer
                             }
                             catch (Exception ex)
                             {
-                                _ = LogErrorAsync(ex, "881 -- Method-- UpdateMachineTestStatusToRunning", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
+                                _ = LogErrorAsync(ex, "881  UpdateMachineTestStatusToRunning", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
                             }
                         }
                     }
@@ -2089,7 +2144,7 @@ namespace TCPServer
             catch (Exception ex)
             {
 
-                await LogErrorAsync(ex, "889 -- Method-- UpdateMachineTestStatusToRunning", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
+                await LogErrorAsync(ex, "889  UpdateMachineTestStatusToRunning", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
             }
         }
         /// <summary>
@@ -2123,7 +2178,7 @@ namespace TCPServer
                     }
                     catch (Exception ex)
                     {
-                        _ = LogErrorAsync(ex, "861 -- Method-- UpdatePreviousTestFinishTime", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
+                        _ = LogErrorAsync(ex, "861  UpdatePreviousTestFinishTime", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
                     }
                 }
             }
@@ -2150,7 +2205,7 @@ namespace TCPServer
                     //catch (Exception ex)
                     //{
 
-                    //     _=LogErrorAsync(ex, "912 -- Method -- ProcessMIDRecievedContent", state.IMEI1).ConfigureAwait(false);
+                    //     _=LogErrorAsync(ex, "912  ProcessMIDRecievedContent", state.IMEI1).ConfigureAwait(false);
                     //}
 
                     if (!AsynchronousSocketListener.DeviceList.Exists(x => x.IMEI1 == state.IMEI1))
@@ -2198,7 +2253,7 @@ namespace TCPServer
             }
             catch (Exception ex)
             {
-                _ = LogErrorAsync(ex, "932 -- Method-- ProcessMIDRecievedContent", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
+                _ = LogErrorAsync(ex, "932  ProcessMIDRecievedContent", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
             }
         }
         private static string[] _CaptchaList = new string[100];
@@ -2265,7 +2320,7 @@ namespace TCPServer
                 catch (Exception ex)
                 {
 
-                    _ = LogErrorAsync(ex, "996 -- Method --  SendWaitingGroupTest", $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
+                    _ = LogErrorAsync(ex, "996   SendWaitingGroupTest", $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
                 }
                 finally
                 {
@@ -2327,7 +2382,7 @@ namespace TCPServer
                 }
                 catch (Exception ex)
                 {
-                    _ = LogErrorAsync(ex, "1052 --Method-- SendWaitingTest", $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
+                    _ = LogErrorAsync(ex, "1052  SendWaitingTest", $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
                 }
                 finally
                 {
@@ -2373,7 +2428,7 @@ namespace TCPServer
                 }
                 catch (Exception ex)
                 {
-                    _ = LogErrorAsync(ex, "1117 -- Method -- UpdateVersion", $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
+                    _ = LogErrorAsync(ex, "1117  UpdateVersion", $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
                 }
                 finally
                 {
@@ -2404,7 +2459,7 @@ namespace TCPServer
                         }
                         catch (Exception ex)
                         {
-                            _ = LogErrorAsync(ex, "1147 -- Method -- UpdateVersion", $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
+                            _ = LogErrorAsync(ex, "1147  UpdateVersion", $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
                         }
                         finally
                         {
@@ -2444,7 +2499,7 @@ namespace TCPServer
                                     }
                                     catch (Exception ex)
                                     {
-                                        _ = LogErrorAsync(ex, "1193 -- Method -- UpdateVersion", $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
+                                        _ = LogErrorAsync(ex, "1193  UpdateVersion", $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
                                     }
 
                                 }
@@ -2485,26 +2540,26 @@ namespace TCPServer
                                                 }
                                                 catch (Exception ex)
                                                 {
-                                                    _ = LogErrorAsync(ex, "1236 -- Method -- UpdateVersion", $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
+                                                    _ = LogErrorAsync(ex, "1236  UpdateVersion", $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
                                                 }
                                             }
                                             catch (Exception ex)
                                             {
-                                                _ = LogErrorAsync(ex, "1241 -- Method -- UpdateVersion", $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
+                                                _ = LogErrorAsync(ex, "1241  UpdateVersion", $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
                                             }
                                             // }
                                         }
                                     }
                                     catch (Exception ex)
                                     {
-                                        _ = LogErrorAsync(ex, "1248 -- Method -- UpdateVersion", $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
+                                        _ = LogErrorAsync(ex, "1248  UpdateVersion", $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
                                     }
                                 }
                             }
                         }
                         catch (Exception ex)
                         {
-                            _ = LogErrorAsync(ex, "1255 -- Method -- UpdateVersion", $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
+                            _ = LogErrorAsync(ex, "1255  UpdateVersion", $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
                         }
                         finally
                         {
@@ -2547,13 +2602,13 @@ namespace TCPServer
                 }
                 catch (Exception ex)
                 {
-                    _ = LogErrorAsync(ex, "1299 -- Method -- Trans_AddVersionDetail", stateObject.IMEI1);
+                    _ = LogErrorAsync(ex, "1299  Trans_AddVersionDetail", stateObject.IMEI1);
                     tx.Rollback();
                 }
             }
             catch (Exception ex)
             {
-                _ = LogErrorAsync(ex, "1309 -- Method -- Trans_AddVersionDetail", stateObject.IMEI1);
+                _ = LogErrorAsync(ex, "1309  Trans_AddVersionDetail", stateObject.IMEI1);
                 tx.Rollback();
             }
             return sql;
@@ -2584,13 +2639,13 @@ namespace TCPServer
                 }
                 catch (Exception ex)
                 {
-                    _ = LogErrorAsync(ex, "1339 -- Method -- Trans_DelVersionDetail", IMEI1);
+                    _ = LogErrorAsync(ex, "1339  Trans_DelVersionDetail", IMEI1);
                     tx.Rollback();
                 }
             }
             catch (Exception ex)
             {
-                _ = LogErrorAsync(ex, "1345 -- Method -- Trans_DelVersionDetail", IMEI1);
+                _ = LogErrorAsync(ex, "1345  Trans_DelVersionDetail", IMEI1);
                 tx.Rollback();
             }
             return sql;
@@ -2640,7 +2695,7 @@ namespace TCPServer
                 }
                 catch (Exception ex)
                 {
-                    _ = LogErrorAsync(ex, "1393 -- Method -- UpdateMachineState", IMEI1);
+                    _ = LogErrorAsync(ex, "1393  UpdateMachineState", IMEI1);
                 }
                 finally
                 {
@@ -2675,7 +2730,7 @@ namespace TCPServer
                 }
                 catch (Exception ex)
                 {
-                    _ = LogErrorAsync(ex, "1393 -- Method -- UpdateMachineState", IMEI1);
+                    _ = LogErrorAsync(ex, "1393  UpdateMachineState", IMEI1);
                 }
                 finally
                 {
@@ -2730,7 +2785,7 @@ namespace TCPServer
                 }
                 catch (Exception ex)
                 {
-                    _ = LogErrorAsync(ex, "1393 -- Method -- UpdateMachineLocation", IMEI1);
+                    _ = LogErrorAsync(ex, "1393  UpdateMachineLocation", IMEI1);
                 }
                 finally
                 {
@@ -2823,7 +2878,7 @@ namespace TCPServer
             {
                 Console.ForegroundColor = colorBefore;
                 ConsolePrint.PrintLine('*');                
-                Console.WriteLine(ConsolePrint.AlignCentre($"{msg} @{DateTime.Now.ToString("yyyy/M/d HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)} ,ServerUTC{DateTime.UtcNow}"));
+                Console.WriteLine($"{msg} @{DateTime.Now.ToString("yyyy/M/d HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)} ,ServerUTC @{DateTime.UtcNow.ToString("yyyy/M/d HH:mm:ss",System.Globalization.CultureInfo.InvariantCulture)}");
                 //ConsolePrint.PrintLine('*');
                 Console.ForegroundColor = colorAfter;
             }

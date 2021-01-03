@@ -175,12 +175,14 @@ namespace TCPServer
                             ConsolePrint.PrintLine('*');
                             Console.ForegroundColor = ConsoleColor.Green;
                             ConsolePrint.PrintLine();
-                            ConsolePrint.PrintRow("IMEI1", "Status", "Counter", "Last Date");
+                            ConsolePrint.PrintRow("No","IMEI1", "Status", "Counter", "Last Date");
                             ConsolePrint.PrintLine();
+                            var ind = 1;
                             foreach (var tmp in AsynchronousSocketListener.DeviceList)
-                            {
-                                ConsolePrint.PrintRow(tmp.IMEI1, tmp.IsConnected == true ? "Connected" : "DisConnected", tmp.counter.ToString(), $"{tmp.lastDateTimeConnected.ToString("yyyy / MM / dd HH: mm:ss", System.Globalization.CultureInfo.InvariantCulture)}");
+                            {                                
+                                ConsolePrint.PrintRow($"{ind}",tmp.IMEI1, tmp.IsConnected == true ? "Connected" : "DisConnected", tmp.counter.ToString(), $"{tmp.lastDateTimeConnected.ToString("yyyy / MM / dd HH: mm:ss", System.Globalization.CultureInfo.InvariantCulture)}");
                                 ConsolePrint.PrintLine();
+                                ind++;
                             }
                             Task.Delay(10000);
                         }
