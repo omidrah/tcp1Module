@@ -2872,13 +2872,13 @@ namespace TCPServer
             return retVal;
         }
 
-        public static void ShowMessage(string msg,ConsoleColor colorBefore,ConsoleColor colorAfter,string imei)
+        public static void ShowMessage(string msg,ConsoleColor colorBefore=ConsoleColor.White,ConsoleColor colorAfter=ConsoleColor.Green,string imei="All")
         {
-            if (TcpSettings.Imei1Log == "All" || imei == TcpSettings.Imei1Log)
+            if (TcpSettings.Imei1Log == "All" || imei == TcpSettings.Imei1Log )
             {
                 Console.ForegroundColor = colorBefore;
-                ConsolePrint.PrintLine('*');                
-                Console.WriteLine($"{msg} @{DateTime.Now.ToString("yyyy/M/d HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)} ,ServerUTC @{DateTime.UtcNow.ToString("yyyy/M/d HH:mm:ss",System.Globalization.CultureInfo.InvariantCulture)}");
+                ConsolePrint.PrintLine('*');
+                Console.WriteLine($"{msg} @{DateTime.Now.ToString("yyyy/M/d HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)} ,ServerUTC @{DateTime.UtcNow.ToString("yyyy/M/d HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)}");
                 //ConsolePrint.PrintLine('*');
                 Console.ForegroundColor = colorAfter;
             }
