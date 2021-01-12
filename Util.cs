@@ -1348,7 +1348,7 @@ namespace TCPServer
                         {
                             fn = valueStatmenet + $"{(SType == SyncType.Async ? "'Async'" : "'Sync'")},{LoopOfActSet},{Convert.ToInt32(ActSets[1])}," +
                                 $"{Convert.ToInt32(ActSets[2])},{Convert.ToInt32(ActSets[3])},{Convert.ToDouble(ActSets[4])},{Convert.ToDouble(ActSets[5]) * -1}," +
-                                $"{ Convert.ToDouble(ActSets[6]) * -1},{ Convert.ToDouble(ActSets[7])},{ Convert.ToDouble(ActSets[8])},'{DateTime.Now}')";
+                                $"{ Convert.ToDouble(ActSets[6]) * -1},{ Convert.ToDouble(ActSets[7]) * -1},{ Convert.ToDouble(ActSets[8])},'{DateTime.Now}')";
                         }
                         catch(Exception ex)
                         {
@@ -1367,7 +1367,7 @@ namespace TCPServer
                                         {
                                             tmpvalue += $"{ Convert.ToInt32(ActSets[stIndex])}," +
                                                 $"{Convert.ToInt32(ActSets[stIndex + 1])},{Convert.ToInt32(ActSets[stIndex + 2])},{Convert.ToDouble(ActSets[stIndex + 3])},{Convert.ToDouble(ActSets[stIndex + 4]) * -1}," +
-                                                $"{ Convert.ToDouble(ActSets[stIndex + 5]) * -1},{ Convert.ToDouble(ActSets[stIndex + 6])},{ Convert.ToDouble(ActSets[stIndex + 7])},'{DateTime.Now}')";
+                                                $"{ Convert.ToDouble(ActSets[stIndex + 5]) * -1},{ Convert.ToDouble(ActSets[stIndex + 6]) * -1},{ Convert.ToDouble(ActSets[stIndex + 7])},'{DateTime.Now}')";
                                         }
                                         catch (Exception ex)
                                         {
@@ -1380,7 +1380,7 @@ namespace TCPServer
                                         {
                                             tmpvalue += $"{ Convert.ToInt32(ActSets[stIndex])}," +
                                                $"{Convert.ToInt32(ActSets[stIndex + 1])},{Convert.ToInt32(ActSets[stIndex + 2])},{Convert.ToDouble(ActSets[stIndex + 3])},{Convert.ToDouble(ActSets[stIndex + 4]) * -1}," +
-                                               $"{Convert.ToDouble(ActSets[stIndex + 5]) * -1},{ Convert.ToDouble(ActSets[stIndex + 6])},{ Convert.ToDouble(ActSets[stIndex + 7])},'{DateTime.Now}'),";
+                                               $"{Convert.ToDouble(ActSets[stIndex + 5]) * -1},{ Convert.ToDouble(ActSets[stIndex + 6]) * -1},{ Convert.ToDouble(ActSets[stIndex + 7])},'{DateTime.Now}'),";
                                         }
                                         catch (Exception ex)
                                         {
