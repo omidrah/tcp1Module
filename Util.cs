@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
@@ -1265,6 +1266,30 @@ namespace TCPServer
                                               witchTest = "ActiveSet";
                                               AsyncParam = t;                                              
                                         }
+                                        else if (t[0].Contains("LCC"))
+                                        {
+                                            var t1Split = t[1].Split(",");
+                                            string cdir = string.Empty, cstat = string.Empty, cmode = string.Empty, cnumber = string.Empty;
+                                            int.TryParse(t1Split[2], out int dir);if (dir == 1) cdir = "MT"; else cdir = "MO";
+                                            int.TryParse(t1Split[3], out int stat); switch (stat) { 
+                                                case 0:cstat = "Active"; break;
+                                                case 1: cstat = "Held";break;
+                                                case 2:cstat = "Dialing";break;
+                                                case 3:cstat = "Alerting";break;
+                                                case 4:cstat = "Incoming";break;
+                                                case 5:cstat = "Waiting";break;
+                                                case 6:cstat = "Disconnect";break;
+                                            }
+                                            int.TryParse(t1Split[4], out int  mode);switch (mode)
+                                            {
+                                                case 0:cmode = "Voice";break;
+                                                case 1:cmode = "Data";break;
+                                                case 2:cmode = "Fax";break;
+                                                case 9:cmode = "Unknown";break;
+                                            }
+                                            inseretStatment = inseretStatment + "CLCC_dir,CLCC_stat,CLCC_mode,CLCC_number ,";
+                                            valueStatmenet = valueStatmenet +"'"+ cdir+"','"+cstat+"','"+cmode+"','"+t1Split[6]+"',";
+                                        }
                                         else
                                         {
                                             if (t[0] == "CreateDate")
@@ -1302,7 +1327,7 @@ namespace TCPServer
                             }
                         }
                         if (isLoopingParam)
-                        {
+                        {                            
                             switch (witchTest)
                             {                                
                                 case "ActiveSet":
@@ -1695,7 +1720,34 @@ namespace TCPServer
                     case "ARFCN":
                         return new string[] { "ARFCN", param.Split(":")[1] };
                     case "DLBW":
-                        return new string[] { "DLBW", param.Split(":")[1] };
+                        int dlbw = 0;
+                        if (int.TryParse(param.Split(":")[1], out dlbw))
+                        {
+                            switch (dlbw)
+                            {
+                                case 0:
+                                    dlbw = 14;
+                                    break;
+                                case 1:
+                                    dlbw = 3;
+                                    break;
+                                case 2:
+                                    dlbw = 5;
+                                    break;
+                                case 3:
+                                    dlbw = 10;
+                                    break;
+                                case 4:
+                                    dlbw = 15;
+                                    break;
+                                case 5:
+                                    dlbw = 20;
+                                    break;
+                                default: //has null value
+                                    return new string[] { "DLBW", "NuNu" };
+                            }
+                        };
+                        return new string[] { "DLBW", dlbw.ToString() };                        
                     case "LAC":
                         int resL = 0;
                         if ((param.Split(":")[1]).Contains("0x")) //اگر هگزاست تبدیل شود به دسیمال
@@ -1712,7 +1764,38 @@ namespace TCPServer
                         }
                         return new string[] { "LAC", "NuNu" };
                     case "ULBW":
-                        return new string[] { "ULBW", param.Split(":")[1] };
+                        int ulbw = 0;
+                        if (int.TryParse(param.Split(":")[1], out  ulbw)) 
+                        {
+                            switch (ulbw)
+                            {
+                                case 0:
+                                    ulbw = 14;
+                                    break;
+                                case 1:
+                                    ulbw = 3;
+                                    break;
+                                case 2:
+                                    ulbw = 5;
+                                    break;
+                                case 3:
+                                    ulbw = 10;
+                                    break;
+                                case 4:
+                                    ulbw = 15;
+                                    break;
+                                case 5:
+                                    ulbw = 20;
+                                    break;
+                                default: //has null value
+                                    return new string[] { "ULBW", "NuNu" };
+                            }
+                        };
+                        return new string[] { "ULBW", ulbw.ToString() };
+                    case "EER":
+                        return new string[] { "CEER", param.Split(":")[1] };
+                    case "LCC":
+                        return new string[] { "LCC", param.Split(":")[1] };
                     case "BCCH":
                         return new string[] { "BCCH", param.Split(":")[1] };
                     case "RSSNR":
@@ -1782,7 +1865,7 @@ namespace TCPServer
                     case "SYSMODE":  //1:2G , 4:3G, 8:4G
                         int sysmode;
                         if (int.TryParse(param.Split(":")[1], out sysmode))
-                        {
+                        {                           
                             return new string[] { "SystemMode", sysmode.ToString() };
                         }
                         else
@@ -2232,15 +2315,18 @@ namespace TCPServer
                         state.Timer.AutoReset = true;
                         state.lastDateTimeConnected = DateTime.Now;
                         state.Timer.Start();
-                    }
+                    }                    
                     //first time , register device
                     if (!string.IsNullOrEmpty(Array.Find(paramArray, element => element.Contains("FWVer"))))
                     {
-                        var elem = Array.Find(paramArray, element => element.Contains("FWVer"));
-                        if (!string.IsNullOrEmpty(elem)) //version Exist
+                        var FWVer = Array.Find(paramArray, element => element.Contains("FWVer"));
+                        var TDD = Array.Find(paramArray, element => element.Contains("TDD"));
+                        if (!string.IsNullOrEmpty(FWVer)) //version Exist
                         {
-                            _ = Util.UpdateMachineStateByVersion(state.IMEI1, state.IMEI2, true, elem.Split(":")[1]);
-                        }
+                            _ = Util.UpdateMachineStateByVersion(state.IMEI1, state.IMEI2, true, 
+                                !string.IsNullOrEmpty(FWVer)?FWVer.Split(":")[1]:string.Empty
+                                ,!string.IsNullOrEmpty(TDD)?TDD.Split(":")[1]:string.Empty );
+                        }                        
                     }
                     else //Version Don't Exist
                     {
@@ -2703,7 +2789,7 @@ namespace TCPServer
                 }
             }
         }
-        internal static async Task UpdateMachineStateByVersion(string IMEI1, string IMEI2, bool IsConnected, string machineVersion = "")
+        internal static async Task UpdateMachineStateByVersion(string IMEI1, string IMEI2, bool IsConnected, string machineVersion = "",string TDD="")
         {
             using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
@@ -2713,7 +2799,7 @@ namespace TCPServer
                         $"begin " +
                         $" insert into machine(IMEI1, IMEI2, MachineTypeId) select @IMEI1, @IMEI2, 1 " +
                         $"end " +
-                        $"update machine set IsConnected = @IsConnected , Version = @Version where IMEI1 = @IMEI1 " +
+                        $"update machine set IsConnected = @IsConnected , Version = @Version , Tdd = @TDD where IMEI1 = @IMEI1 " +
                         $"insert into MachineConnectionHistory( MachineId, IsConnected) values " +
                         $" ((select id from  machine where IMEI1 = @IMEI1 ), @IsConnected)";
                     using (SqlCommand command = new SqlCommand(sql, connection))
@@ -2724,6 +2810,8 @@ namespace TCPServer
                         command.Parameters.AddWithValue("@IMEI1", IMEI1);
                         command.Parameters.AddWithValue("@IMEI2", IMEI2);
                         command.Parameters.AddWithValue("@Version", machineVersion);
+                        command.Parameters.AddWithValue("@TDD", TDD);
+
                         connection.Open();
                         await command.ExecuteNonQueryAsync();
                     }
