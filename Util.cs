@@ -1682,8 +1682,8 @@ namespace TCPServer
                         }
                         else //if BER=NAN, return null for int?
                             return new string[] { "BER", "NuNu" };
-                    case "PID":
-                        return new string[] { "PID", param.Split(":")[1] };
+                    case "PCI":  //PID change to PCI Data:991124.
+                        return new string[] { "PCI", param.Split(":")[1] };
                     case "MCC-MNC":
                         var vals = param.Split(":")[1].Split("-");
                         return new string[] { "MCC", vals[0], "MNC", vals[1] };
