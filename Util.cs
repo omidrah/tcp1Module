@@ -1268,182 +1268,189 @@ namespace TCPServer
                                         }
                                         else if (t[0].Contains("EONS"))
                                         {
-                                            var eons = t[1].Split(',');
-                                            var mcc = Convert.ToInt32(eons[1].Substring(0, 2));
-                                            var mnc = Convert.ToInt32(eons[1].Substring(2, 3));
-                                            inseretStatment = inseretStatment + "MCC ,MNC,";
-                                            valueStatmenet = valueStatmenet + mcc + " , " + mnc + " , ";
-                                        }
-                                        else if (t[0].Contains("CGREG") && t[1] != "NAN")
-                                        {
-                                            var cgParm = t[1].Split(',');
-                                            string rsVal = string.Empty;
-                                            int.TryParse(cgParm[1], out int regstat);
-                                            switch (regstat)
+                                            if (t[1] != "NaN")
                                             {
-                                                case 0:
-                                                    rsVal = "Not registered, not currently searching ";
-                                                    break;
-                                                case 1:
-                                                    rsVal = "Registered, home network";
-                                                    break;
-                                                case 2:
-                                                    rsVal = "Not registered, currently searching.";
-                                                    break;
-                                                case 3:
-                                                    rsVal = "Registration denied";
-                                                    break;
-                                                case 4:
-                                                    rsVal = "Unknown";
-                                                    break;
-                                                case 5:
-                                                    rsVal = "Registered, roaming";
-                                                    break;
+                                                var eons = t[1].Split(',');
+                                                var mcc = Convert.ToInt32(eons[1].Substring(0, 3));
+                                                var mnc = Convert.ToInt32(eons[1].Substring(3, 2));
+                                                inseretStatment += "MCC ,MNC,";
+                                                valueStatmenet = valueStatmenet + mcc + " , " + mnc + " , ";
                                             }
-                                            int LacVal = 0;
-                                            if ((cgParm[2]).Contains("0x")) //اگر هگزاست تبدیل شود به دسیمال
+                                        }
+                                        else if (t[0].Contains("CGREG"))
+                                        {
+                                            if (t[1] != "NaN")
                                             {
+                                                var cgParm = t[1].Split(',');
+                                                string rsVal = string.Empty;
+                                                int.TryParse(cgParm[1], out int regstat);
+                                                switch (regstat)
+                                                {
+                                                    case 0:
+                                                        rsVal = "Not registered, not currently searching ";
+                                                        break;
+                                                    case 1:
+                                                        rsVal = "Registered, home network";
+                                                        break;
+                                                    case 2:
+                                                        rsVal = "Not registered, currently searching.";
+                                                        break;
+                                                    case 3:
+                                                        rsVal = "Registration denied";
+                                                        break;
+                                                    case 4:
+                                                        rsVal = "Unknown";
+                                                        break;
+                                                    case 5:
+                                                        rsVal = "Registered, roaming";
+                                                        break;
+                                                }
+                                                int LacVal = 0;
+                                                // هگزاست تبدیل شود به دسیمال                                            
                                                 LacVal = Convert.ToInt32(cgParm[2], 16);
-                                            }
-                                            else
-                                            {
-                                                int.TryParse(cgParm[2], out LacVal);
-                                            }
-                                            if (int.TryParse(cgParm[3], out int cidValue))
-                                            {
-                                                if (cidValue == -1 || cidValue == 0) //مقدار غیر صحیح
-                                                    cidValue = -1;
-                                            }
-                                            inseretStatment = inseretStatment + "Reg_stat,LAC,CID,";
-                                            valueStatmenet = valueStatmenet + "'" + rsVal + "'," + LacVal + "," + cidValue + ",";
-                                        }
-                                        else if (t[0].Contains("IFX"))
-                                        {
-                                            var ifx = t[1].Split(",");
-                                            string srvSt = string.Empty, srvdom = string.Empty, roamst = string.Empty, simstat = string.Empty;
-                                            int.TryParse(ifx[0], out int svSt);
-                                            switch (svSt)
-                                            {
-                                                case 0:
-                                                    srvSt = "No services";
-                                                    break;
-                                                case 1:
-                                                    srvSt = "Restricted ";
-                                                    break;
-                                                case 2:
-                                                    srvSt = "Valid ";
-                                                    break;
-                                                case 3:
-                                                    srvSt = "Restricted regional ";
-                                                    break;
-                                                case 4:
-                                                    srvSt = "Power saving ";
-                                                    break;
-                                            }
-                                            int.TryParse(ifx[1], out int svdom);
-                                            switch (svdom)
-                                            {
-                                                case 0:
-                                                    srvdom = "No services";
-                                                    break;
-                                                case 1:
-                                                    srvdom = "CS only";
-                                                    break;
-                                                case 2:
-                                                    srvdom = "PS only";
-                                                    break;
-                                                case 3:
-                                                    srvdom = "PS+CS";
-                                                    break;
-                                                case 4:
-                                                    srvdom = "Not registered- searching ";
-                                                    break;
-                                            }
-                                            int.TryParse(ifx[2], out int roam);
-                                            switch (roam)
-                                            {
-                                                case 0:
-                                                    roamst = "Not roaming";
-                                                    break;
-                                                case 1:
-                                                    roamst = "Roaming";
-                                                    break;
-                                            }
-                                            int.TryParse(ifx[3], out int ssim);
-                                            switch (ssim)
-                                            {
-                                                case 0:
-                                                    simstat = "Invalid SIM ";
-                                                    break;
-                                                case 1:
-                                                    simstat = "Valid SIM ";
-                                                    break;
-                                                case 2:
-                                                    simstat = "Invalid SIM in CS";
-                                                    break;
-                                                case 3:
-                                                    simstat = "Invalid SIM in PS";
-                                                    break;
-                                                case 4:
-                                                    simstat = "Invalid SIM in PS and CS";
-                                                    break;
-                                                case 240:
-                                                    simstat = "ROMSIM version ";
-                                                    break;
-                                                case 250:
-                                                    simstat = "No SIM  ";
-                                                    break;
-                                            }
-                                            int.TryParse(ifx[5], out int ssmode);
-                                            switch (ssmode)
-                                            {
-                                                case 0: ssmode = 0; break;
-                                                case 1: ssmode = 1; break;
-                                                case 3: ssmode = 4; break;
-                                                case 6: ssmode = 8; break;
-                                            }
+                                                // هگزاست تبدیل شود به دسیمال    
+                                                int cidValue = -1;
+                                                cidValue = Convert.ToInt32(cgParm[3], 16);
 
-                                            inseretStatment = inseretStatment + "Srv_status,Srv_domain,Roam_status,Sim_state,SystemMode";
-                                            valueStatmenet = valueStatmenet + "'" + srvSt + "','" + srvdom + "','" + roamst + "','" + simstat + "'," + ssmode + ",";
+                                                inseretStatment += "Reg_stat,LAC,CID,";
+                                                valueStatmenet = valueStatmenet + "'" + rsVal + "'," + LacVal + "," + cidValue + ",";
+                                            }
+                                        }
+                                        else if (t[0].Contains("IFX") )
+                                        {
+                                            if (t[1] != "NaN")
+                                            {
+                                                var ifx = t[1].Split(",");
+                                                string srvSt = string.Empty, srvdom = string.Empty, roamst = string.Empty, simstat = string.Empty;
+                                                int.TryParse(ifx[0], out int svSt);
+                                                switch (svSt)
+                                                {
+                                                    case 0:
+                                                        srvSt = "No services";
+                                                        break;
+                                                    case 1:
+                                                        srvSt = "Restricted ";
+                                                        break;
+                                                    case 2:
+                                                        srvSt = "Valid ";
+                                                        break;
+                                                    case 3:
+                                                        srvSt = "Restricted regional ";
+                                                        break;
+                                                    case 4:
+                                                        srvSt = "Power saving ";
+                                                        break;
+                                                }
+                                                int.TryParse(ifx[1], out int svdom);
+                                                switch (svdom)
+                                                {
+                                                    case 0:
+                                                        srvdom = "No services";
+                                                        break;
+                                                    case 1:
+                                                        srvdom = "CS only";
+                                                        break;
+                                                    case 2:
+                                                        srvdom = "PS only";
+                                                        break;
+                                                    case 3:
+                                                        srvdom = "PS+CS";
+                                                        break;
+                                                    case 4:
+                                                        srvdom = "Not registered- searching ";
+                                                        break;
+                                                }
+                                                int.TryParse(ifx[2], out int roam);
+                                                switch (roam)
+                                                {
+                                                    case 0:
+                                                        roamst = "Not roaming";
+                                                        break;
+                                                    case 1:
+                                                        roamst = "Roaming";
+                                                        break;
+                                                }
+                                                int.TryParse(ifx[3], out int ssim);
+                                                switch (ssim)
+                                                {
+                                                    case 0:
+                                                        simstat = "Invalid SIM ";
+                                                        break;
+                                                    case 1:
+                                                        simstat = "Valid SIM ";
+                                                        break;
+                                                    case 2:
+                                                        simstat = "Invalid SIM in CS";
+                                                        break;
+                                                    case 3:
+                                                        simstat = "Invalid SIM in PS";
+                                                        break;
+                                                    case 4:
+                                                        simstat = "Invalid SIM in PS and CS";
+                                                        break;
+                                                    case 240:
+                                                        simstat = "ROMSIM version ";
+                                                        break;
+                                                    case 250:
+                                                        simstat = "No SIM  ";
+                                                        break;
+                                                }
+                                                int.TryParse(ifx[5], out int ssmode);
+                                                switch (ssmode)
+                                                {
+                                                    case 0: ssmode = 0; break;
+                                                    case 1: ssmode = 1; break;
+                                                    case 3: ssmode = 4; break;
+                                                    case 6: ssmode = 8; break;
+                                                }
+
+                                                inseretStatment += "Srv_status,Srv_domain,Roam_status,Sim_state,SystemMode,";
+                                                valueStatmenet = valueStatmenet + "'" + srvSt + "','" + srvdom + "','" + roamst + "','" + simstat + "'," + ssmode + ",";
+                                            }
                                         }
                                         else if (t[0].Contains("HCSQ"))
                                         {
-                                            var hc = t[1].Split(',');
-                                            double.TryParse(hc[1], out double rssi);
-                                            rssi = (rssi- 121) + (new Random().Next(0, 1));
-                                            double.TryParse(hc[2], out double rsrp);
-                                            rsrp = (rsrp - 141) + (new Random().Next(0, 1));
-                                            double.TryParse(hc[3], out double sinr);
-                                            sinr =(sinr* 0.2) - 20.5;
-                                            double.TryParse(hc[4], out double rsrq);
-                                            rsrq = (rsrq*0.5) - 20;
-                                            inseretStatment += "RSSI,RSRP,SINR,RSRQ,";
-                                            valueStatmenet += rssi + "," + rsrp + "," + sinr + "," + rsrq + ",";
+                                            if ( t[1] != "NaN") {
+                                                var hc = t[1].Split(',');
+                                                double.TryParse(hc[1], out double rssi);
+                                                rssi = (rssi - 121) + (new Random().Next(0, 1));
+                                                double.TryParse(hc[2], out double rsrp);
+                                                rsrp = (rsrp - 141) + (new Random().Next(0, 1));
+                                                double.TryParse(hc[3], out double sinr);
+                                                sinr = (sinr * 0.2) - 20.5;
+                                                double.TryParse(hc[4], out double rsrq);
+                                                rsrq = (rsrq * 0.5) - 20;
+                                                inseretStatment += "RSSI,RSRP,SINR,RSRQ,";
+                                                valueStatmenet += rssi + "," + rsrp + "," + sinr + "," + rsrq + ",";
+                                            }
                                         }
                                         else if (t[0].Contains("LCC"))
                                         {
-                                            var t1Split = t[1].Split(",");
-                                            string cdir = string.Empty, cstat = string.Empty, cmode = string.Empty, cnumber = string.Empty;
-                                            int.TryParse(t1Split[2], out int dir); if (dir == 1) cdir = "MT"; else cdir = "MO";
-                                            int.TryParse(t1Split[3], out int stat); switch (stat)
+                                            if (t[1] != "NaN")
                                             {
-                                                case 0: cstat = "Active"; break;
-                                                case 1: cstat = "Held"; break;
-                                                case 2: cstat = "Dialing"; break;
-                                                case 3: cstat = "Alerting"; break;
-                                                case 4: cstat = "Incoming"; break;
-                                                case 5: cstat = "Waiting"; break;
-                                                case 6: cstat = "Disconnect"; break;
+                                                var t1Split = t[1].Split(",");
+                                                string cdir = string.Empty, cstat = string.Empty, cmode = string.Empty, cnumber = string.Empty;
+                                                int.TryParse(t1Split[2], out int dir); if (dir == 1) cdir = "MT"; else cdir = "MO";
+                                                int.TryParse(t1Split[3], out int stat); switch (stat)
+                                                {
+                                                    case 0: cstat = "Active"; break;
+                                                    case 1: cstat = "Held"; break;
+                                                    case 2: cstat = "Dialing"; break;
+                                                    case 3: cstat = "Alerting"; break;
+                                                    case 4: cstat = "Incoming"; break;
+                                                    case 5: cstat = "Waiting"; break;
+                                                    case 6: cstat = "Disconnect"; break;
+                                                }
+                                                int.TryParse(t1Split[4], out int mode); switch (mode)
+                                                {
+                                                    case 0: cmode = "Voice"; break;
+                                                    case 1: cmode = "Data"; break;
+                                                    case 2: cmode = "Fax"; break;
+                                                    case 9: cmode = "Unknown"; break;
+                                                }
+                                                inseretStatment += "CLCC_dir,CLCC_stat,CLCC_mode,CLCC_number ,";
+                                                valueStatmenet = valueStatmenet + "'" + cdir + "','" + cstat + "','" + cmode + "','" + t1Split[6] + "',";
                                             }
-                                            int.TryParse(t1Split[4], out int mode); switch (mode)
-                                            {
-                                                case 0: cmode = "Voice"; break;
-                                                case 1: cmode = "Data"; break;
-                                                case 2: cmode = "Fax"; break;
-                                                case 9: cmode = "Unknown"; break;
-                                            }
-                                            inseretStatment = inseretStatment + "CLCC_dir,CLCC_stat,CLCC_mode,CLCC_number ,";
-                                            valueStatmenet = valueStatmenet + "'" + cdir + "','" + cstat + "','" + cmode + "','" + t1Split[6] + "',";
                                         }
                                         else
                                         {

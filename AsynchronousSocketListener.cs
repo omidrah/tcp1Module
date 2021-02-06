@@ -271,7 +271,8 @@ namespace TCPServer
                 }
             }
         }
-        private static async Task CheckValue(StateObject client)
+        private static async Task CheckValue(StateObject client)        
+        
         {
             if (string.IsNullOrEmpty(client.tmpValue) && !client.value.Contains("SHORU") && !client.value.Contains("PAYAN"))
             {
