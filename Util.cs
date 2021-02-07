@@ -1413,9 +1413,9 @@ namespace TCPServer
                                             if ( t[1] != "NaN") {
                                                 var hc = t[1].Split(',');
                                                 double.TryParse(hc[1], out double rssi);
-                                                rssi = (rssi - 121) + (new Random().Next(0, 1));
+                                                rssi = (rssi - 121) + (new Random().NextDouble());
                                                 double.TryParse(hc[2], out double rsrp);
-                                                rsrp = (rsrp - 141) + (new Random().Next(0, 1));
+                                                rsrp = (rsrp - 141) + (new Random().NextDouble());
                                                 double.TryParse(hc[3], out double sinr);
                                                 sinr = (sinr * 0.2) - 20.5;
                                                 double.TryParse(hc[4], out double rsrq);
