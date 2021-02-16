@@ -1234,7 +1234,7 @@ namespace TCPServer
                                             }
                                             else
                                             {
-                                                inseretStatment += " NumOfPacketSent , NumOfPacketReceived, NumOfPacketLost, Ping, Rtt, MinRtt,AvgRtt,MaxRtt,mdev,";
+                                                inseretStatment += " NumOfPacketSent , NumOfPacketReceived, PercentOfPacketLost, Ping, Rtt, MinRtt,AvgRtt,MaxRtt,mdev,";
                                                 valueStatmenet += pingResult[0].Split(' ')[0] + " , " + pingResult[1].Split(' ')[1] + " , " + pingResult[2].Split('%')[0].Split(' ')[1] + " , 'Ping' ," +
                                                     pingResult[3].Split('=')[0].Split(' ')[2].Split('m')[0] + " , " + pingResult[3].Split('=')[1].Split('/')[0] + " , " +
                                                     pingResult[3].Split('=')[1].Split('/')[1] + " , " + pingResult[3].Split('=')[1].Split('/')[2] + " , " + pingResult[3].Split('=')[1].Split('/')[3].Split(' ')[0] + " ,";
@@ -2294,6 +2294,12 @@ namespace TCPServer
                     case "SyncNeighborSET":                        
                     case "AsyncNeighborSET":
                         return param.Split(":");
+                    case "PingTime":
+                        if (double.TryParse(param.Split(":")[1], out double pt))
+                        {
+                            return new string[] { "PingTime", pt.ToString() };
+                        }
+                        return new string[] { "PingTime", "NuNu" };                        
                     default:
                         break;
                 }
