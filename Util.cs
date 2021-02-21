@@ -1208,17 +1208,18 @@ namespace TCPServer
                                                         double.TryParse(speedKiloFromGPVTG, out double Speed);
                                                         double.TryParse(speedKnotFromGPVTG, out double Speed2);
                                                         double.TryParse(altitudeFRomGPGGA, out double Altitude);
-                                                        inseretStatment = inseretStatment + " Lat , Long, ";
+                                                        float.TryParse(paramArray[2].Split(':')[1], out float cpuTemp);
                                                         valueStatmenet = valueStatmenet + lat + " , " + lon.ToString() + " , ";
+                                                        inseretStatment = inseretStatment + " Lat , Long, ";
                                                         if (DateTime.TryParse(paramArray[4].Substring(5, paramArray[4].Length - 5), out DateTime fromDevice))
-                                                        {
+                                                        {      
                                                             _ = Util.UpdateMachineLocation(state.IMEI1, state.IMEI2, lat.ToString(), lon.ToString(),
-                                                            Speed, Speed2, Altitude, fromDevice, null).ConfigureAwait(false);
+                                                            Speed, Speed2, Altitude, fromDevice, cpuTemp).ConfigureAwait(false);
                                                         }
-                                                        else
+                                                        else //old device.. not handle DateTime not null
                                                         {
                                                             _ = Util.UpdateMachineLocation(state.IMEI1, state.IMEI2, lat.ToString(), lon.ToString(),
-                                                              Speed, Speed2, Altitude, null, null).ConfigureAwait(false);
+                                                              Speed, Speed2, Altitude, null, cpuTemp).ConfigureAwait(false);
                                                         }
                                                     }
                                                 }
