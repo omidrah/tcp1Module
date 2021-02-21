@@ -728,6 +728,7 @@ namespace TCPServer
                         //var timeFromGPGGA = gpsData[1];
                         var latFromGPGGA = gpsData[2];
                         var lonFromGPGGA = gpsData[4];
+                        //if Device has not lat,lon , recored do not register. --Sohbat shode. ingone bashad
                         if (!string.IsNullOrEmpty(latFromGPGGA) && !string.IsNullOrEmpty(lonFromGPGGA))
                         {
                             var altitudeFRomGPGGA = gpsData[9];
