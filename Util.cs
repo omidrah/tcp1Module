@@ -748,7 +748,7 @@ namespace TCPServer
                             double.TryParse(speedKiloFromGPVTG, out double Speed);
                             double.TryParse(speedKnotFromGPVTG, out double Speed2);
                             double.TryParse(altitudeFRomGPGGA, out double Altitude);
-                            float.TryParse(paramArray[4].Split(':')[1], out float cpuTemp);
+                            float.TryParse(paramArray[6].Split(':')[1], out float cpuTemp);
                             DateTime.TryParse(paramArray[3].Substring(5, paramArray[3].Length - 5), out DateTime fromDevice);
                             if (state.IMEI1 != null && state.IsConnected)
                             {
@@ -1555,9 +1555,18 @@ namespace TCPServer
                                 {
                                         try
                                         {
-                                            tmpvalue += $"{ Convert.ToInt32(ActSets[stIndex])}," +
-                                                $"{Convert.ToInt32(ActSets[stIndex + 1])},{Convert.ToInt32(ActSets[stIndex + 2])},{Convert.ToDouble(ActSets[stIndex + 3])},{Convert.ToDouble(ActSets[stIndex + 4]) * -1}," +
-                                                $"{ Convert.ToDouble(ActSets[stIndex + 5]) * -1},{ Convert.ToDouble(ActSets[stIndex + 6]) * -1},{ Convert.ToDouble(ActSets[stIndex + 7])},'{DateTime.Now}')";
+                                            if (stIndex + 8 < ActSets.Length)
+                                            {
+                                                tmpvalue += $"{ Convert.ToInt32(ActSets[stIndex])}," +
+                                                        $"{Convert.ToInt32(ActSets[stIndex + 1])},{Convert.ToInt32(ActSets[stIndex + 2])},{Convert.ToDouble(ActSets[stIndex + 3])},{Convert.ToDouble(ActSets[stIndex + 4]) * -1}," +
+                                                        $"{ Convert.ToDouble(ActSets[stIndex + 5]) * -1},{ Convert.ToDouble(ActSets[stIndex + 6]) * -1},{ Convert.ToDouble(ActSets[stIndex + 7])},'{DateTime.Now}')";
+                                            }
+                                            else
+                                            {
+                                                tmpvalue = string.Empty;
+                                                fn = fn.Remove(fn.Length - 1);
+                                                break;
+                                            }
                                         }
                                         catch (Exception ex)
                                         {
@@ -1568,9 +1577,18 @@ namespace TCPServer
                                 {
                                         try
                                         {
-                                            tmpvalue += $"{ Convert.ToInt32(ActSets[stIndex])}," +
-                                               $"{Convert.ToInt32(ActSets[stIndex + 1])},{Convert.ToInt32(ActSets[stIndex + 2])},{Convert.ToDouble(ActSets[stIndex + 3])},{Convert.ToDouble(ActSets[stIndex + 4]) * -1}," +
-                                               $"{Convert.ToDouble(ActSets[stIndex + 5]) * -1},{ Convert.ToDouble(ActSets[stIndex + 6]) * -1},{ Convert.ToDouble(ActSets[stIndex + 7])},'{DateTime.Now}'),";
+                                            if (stIndex + 8 < ActSets.Length) 
+                                            {
+                                                tmpvalue += $"{ Convert.ToInt32(ActSets[stIndex])}," +
+                                                   $"{Convert.ToInt32(ActSets[stIndex + 1])},{Convert.ToInt32(ActSets[stIndex + 2])},{Convert.ToDouble(ActSets[stIndex + 3])},{Convert.ToDouble(ActSets[stIndex + 4]) * -1}," +
+                                                   $"{Convert.ToDouble(ActSets[stIndex + 5]) * -1},{ Convert.ToDouble(ActSets[stIndex + 6]) * -1},{ Convert.ToDouble(ActSets[stIndex + 7])},'{DateTime.Now}'),";
+                                            }
+                                            else
+                                            {
+                                                tmpvalue = string.Empty;
+                                                fn = fn.Remove(fn.Length - 1);
+                                                break;
+                                            }
                                         }
                                         catch (Exception ex)
                                         {
@@ -1611,7 +1629,7 @@ namespace TCPServer
             StateObject state)
         {
             valueStatmenet = valueStatmenet.Replace("Values", "");
-            string tmpvalue=string.Empty,fn = string.Empty;
+            string fn = string.Empty;
             insertStatment += "ActiveSetNumber,PSC,UARFCN,SSC,STTD,TOTECIO,ECIO,RSCP,TPC,OVSF,WinSize,RegisterDate) values ";
             var ActSets = t[1].Split(',');
             if(int.TryParse(ActSets[0],out int LoopOfActSet))
@@ -1634,45 +1652,41 @@ namespace TCPServer
                     }
                     else
                     {
-                        int cntvalue = 1;               
+                        int cntvalue = 1;                        
                         for (int i = 1; i <= LoopOfActSet; i++)
                         {
-                            int stIndex = cntvalue; int enIndex =i*10;
-                            for (int j = stIndex; j <= enIndex; j++)
+                            fn += valueStatmenet + $"{LoopOfActSet},";
+                            int stIndex = cntvalue; int enIndex =i*10;                            
+                            if (i == LoopOfActSet)
                             {
-                                tmpvalue = valueStatmenet + $"{LoopOfActSet},";
-                                if (j == 10)
-                                {
-                                    try
-                                    {
-                                        tmpvalue += $"{Convert.ToDouble(ActSets[stIndex])},{Convert.ToDouble(ActSets[stIndex + 1])},{Convert.ToDouble(ActSets[stIndex + 2])},{Convert.ToDouble(ActSets[stIndex + 3])}," +
-                                                    $"{Convert.ToDouble(ActSets[stIndex + 4]) * -1},{Convert.ToDouble(ActSets[stIndex + 5]) * -1},{Convert.ToDouble(ActSets[stIndex + 6]) * -1}," +
-                                                    $"{Convert.ToDouble(ActSets[stIndex + 7])},{Convert.ToDouble(ActSets[stIndex + 8])},{Convert.ToDouble(ActSets[stIndex + 9])}," +
-                                                    $"'{DateTime.Now}')";
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        _ = LogErrorAsync(ex, "1462 ActiveSet. Convert Params has Error", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
-                                    }
+                                try
+                                {                                    
+                                    fn += $"{Convert.ToDouble(ActSets[stIndex])},{Convert.ToDouble(ActSets[stIndex + 1])},{Convert.ToDouble(ActSets[stIndex + 2])},{Convert.ToDouble(ActSets[stIndex + 3])}," +
+                                                $"{Convert.ToDouble(ActSets[stIndex + 4]) * -1},{Convert.ToDouble(ActSets[stIndex + 5]) * -1},{Convert.ToDouble(ActSets[stIndex + 6]) * -1}," +
+                                                $"{Convert.ToDouble(ActSets[stIndex + 7])},{Convert.ToDouble(ActSets[stIndex + 8])},{Convert.ToDouble(ActSets[stIndex + 9])}," +
+                                                $"'{DateTime.Now}')";
                                 }
-                                else
+                                catch (Exception ex)
                                 {
-                                    try
-                                    {
-                                        tmpvalue += $"{Convert.ToDouble(ActSets[stIndex])},{Convert.ToDouble(ActSets[stIndex + 1])},{Convert.ToDouble(ActSets[stIndex + 2])},{Convert.ToDouble(ActSets[stIndex + 3])}," +
-                                                    $"{Convert.ToDouble(ActSets[stIndex + 4]) * -1},{Convert.ToDouble(ActSets[stIndex + 5]) * -1},{Convert.ToDouble(ActSets[stIndex + 6]) * -1}," +
-                                                    $"{Convert.ToDouble(ActSets[stIndex + 7])},{Convert.ToDouble(ActSets[stIndex + 8])},{Convert.ToDouble(ActSets[stIndex + 9])}," +
-                                                    $"'{DateTime.Now}'),";
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        _ = LogErrorAsync(ex, "1476 ActiveSet. Convert Params has Error", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
-                                    }
+                                    _ = LogErrorAsync(ex, "1462 ActiveSet. Convert Params has Error", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
                                 }
                             }
-                            fn += tmpvalue;
+                            else
+                            {
+                                try
+                                {                                   
+                                    fn += $"{Convert.ToDouble(ActSets[stIndex])},{Convert.ToDouble(ActSets[stIndex + 1])},{Convert.ToDouble(ActSets[stIndex + 2])},{Convert.ToDouble(ActSets[stIndex + 3])}," +
+                                                $"{Convert.ToDouble(ActSets[stIndex + 4]) * -1},{Convert.ToDouble(ActSets[stIndex + 5]) * -1},{Convert.ToDouble(ActSets[stIndex + 6]) * -1}," +
+                                                $"{Convert.ToDouble(ActSets[stIndex + 7])},{Convert.ToDouble(ActSets[stIndex + 8])},{Convert.ToDouble(ActSets[stIndex + 9])}," +
+                                                $"'{DateTime.Now}'),";
+                                }
+                                catch (Exception ex)
+                                {
+                                    _ = LogErrorAsync(ex, "1476 ActiveSet. Convert Params has Error", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
+                                }
+                            }                            
                             cntvalue += enIndex;
-                        }
+                        }                        
                     }
                     try
                     {
