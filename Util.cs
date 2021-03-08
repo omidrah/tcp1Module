@@ -2572,7 +2572,7 @@ namespace TCPServer
                         $" dt.DlServer else dt.DlServer + N'/' + dt.DlFileAddress end ,N'//',N'/'),N'https:/',N''),N'http:/',N'') as DlServer, dt.DlUserName, dt.DlPassword,dt.DlTime, " +
                         $" replace(replace(replace(case when (dt.UpFileAddress is null or dt.UpFileAddress = N'' ) then  " +
                         $" dt.UpServer else dt.UpServer + N'/' + dt.UpFileAddress end ,N'//',N'/'),N'https:/',N''),N'http:/',N'') as UpServer ,  dt.UpTime, dt.UpFileSize,dt.UpUserName,dt.UpPassword, " +
-                        $" dt.IPTypeId, dt.OTTServiceId, dt.OTTServiceTypeId,dt.ShortCode,,dt.OttInstaLoginout as Login,dt.OttInstaDownloadNum as FileCNT,dt.OttInstaThreadNum as ThreadCNT,dt.OttInstaDownContent as Content," +
+                        $" dt.IPTypeId, dt.OTTServiceId, dt.OTTServiceTypeId,dt.ShortCode,case when dt.OttInstaLoginout =0 then 0 when dt.OttInstaLoginout=1 then 1 end as Login,dt.OttInstaDownloadNum as FileCNT,dt.OttInstaThreadNum as ThreadCNT,dt.OttInstaDownContent as Content," +
                         $" dt.NetworkId, dt.BandId , dt.SaveLogFile, dt.LogFilePartitionTypeId, dt.LogFilePartitionTime, " +
                         $" dt.LogFilePartitionSize, dt.LogFileHoldTime, dt.NumberOfPings, dt.PacketSize,dt.APN, dt.InternalTime, dt.ResponseWaitTime, dt.TTL,replace(CONVERT(varchar(26), DTMG.BeginDate, 121), " +
                         $" N':', N'-') BeginDate, replace(CONVERT(varchar(26), DTMG.EndDate, 121), N':', N'-') EndDate, DTMG.SIM,  " +
@@ -2636,7 +2636,9 @@ namespace TCPServer
                         $" dt.DlServer else dt.DlServer + N'/' + dt.DlFileAddress end ,N'//',N'/'),N'https:/',N''),N'http:/',N'') as DlServer, dt.DlUserName, dt.DlPassword,dt.DlTime, " +
                         $" replace(replace(replace(case when (dt.UpFileAddress is null or dt.UpFileAddress = N'' ) then  " +
                         $" dt.UpServer else dt.UpServer + N'/' + dt.UpFileAddress end ,N'//',N'/'),N'https:/',N''),N'http:/',N'') as UpServer ,  dt.UpTime, dt.UpFileSize,dt.UpUserName,dt.UpPassword, " +
-                        $" dt.IPTypeId, dt.OTTServiceId,dt.OTTServiceTypeId,dt.ShortCode,dt.OttInstaLoginout as Login,dt.OttInstaDownloadNum as FileCNT,dt.OttInstaThreadNum as ThreadCNT,dt.OttInstaDownContent as Content," +
+                        $" dt.IPTypeId, dt.OTTServiceId,dt.OTTServiceTypeId,dt.ShortCode,case when dt.OttInstaLoginout =0 then 0 when dt.OttInstaLoginout=1 then 1 end as Login,dt.OttInstaDownloadNum as FileCNT," +
+                        $" dt.OttInstaThreadNum as ThreadCNT,dt.OttInstaDownContent as Content," +
+
                         $" dt.NetworkId, dt.BandId , dt.SaveLogFile, dt.LogFilePartitionTypeId, dt.LogFilePartitionTime, " +
                         $" dt.LogFilePartitionSize, dt.LogFileHoldTime, dt.NumberOfPings,dt.APN, dt.PacketSize, dt.InternalTime, dt.ResponseWaitTime, dt.TTL,  DTM.SIM, " +
                         $"            case when TesttypeId not in(5,4, 2) then testtypeid " +
