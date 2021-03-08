@@ -1236,6 +1236,9 @@ namespace TCPServer
                                             }
                                             else
                                             {
+                                                //نکته: از طرف دستگاه آدرسی که پینگ با انصورت میگیرد برخی مواقع فرستاده نمیشود
+                                                //پر میشودPingبا مقدار Ping و  فیلد
+                                                //اینمورد با آقای آیینی و خانوم وحیدپور بررسی شد و نتیجه گرفته شد که دستگاه نمی فرستد991218
                                                 inseretStatment += " NumOfPacketSent , NumOfPacketReceived, PercentOfPacketLost, Ping, Rtt, MinRtt,AvgRtt,MaxRtt,mdev,";
                                                 valueStatmenet += pingResult[0].Split(' ')[0] + " , " + pingResult[1].Split(' ')[1] + " , " + pingResult[2].Split('%')[0].Split(' ')[1] + " , 'Ping' ," +
                                                     pingResult[3].Split('=')[0].Split(' ')[2].Split('m')[0] + " , " + pingResult[3].Split('=')[1].Split('/')[0] + " , " +
@@ -2015,14 +2018,32 @@ namespace TCPServer
                     case "RXLEV":
                         return new string[] { "RXLevel", param.Split(":")[1] };
                     case "ECIO":
-                        float.TryParse((param.Split(":")[1]).ToString(), out tmpVal); tmpVal *= -1; //addedby-omid-981227
-                        return new string[] { "ECIO", tmpVal.ToString() };
+                        if (float.TryParse((param.Split(":")[1]).ToString(), out tmpVal))
+                        {
+                            //check  ECIO > 40 ignore //991218
+                            if (tmpVal> 40)
+                            {
+                                return new string[] { "ECIO", "NuNu" };
+                            }
+                            tmpVal *= -1; //addedby-omid-981227
+                            return new string[] { "ECIO", tmpVal.ToString() };
+                        }
+                        return new string[] { "ECIO", "NuNu" };
                     case "RSRQ":
                         float.TryParse(param.Split(":")[1], out tmpVal); tmpVal /= 10; //addedby-omid-981227
                         return new string[] { "RSRQ", tmpVal.ToString() };
                     case "RSCP":
-                        float.TryParse(param.Split(":")[1], out tmpVal); tmpVal *= -1;//addeddby-omid-981227
-                        return new string[] { "RSCP", tmpVal.ToString() };
+                        if(float.TryParse(param.Split(":")[1], out tmpVal))
+                        {
+                            //check RSCP > 140 ignore   //991218
+                            if (tmpVal > 140)
+                            {
+                                return new string[] { "RSCP", "NuNu" };
+                            }
+                            tmpVal *= -1;//addeddby-omid-981227
+                            return new string[] { "RSCP", tmpVal.ToString() };
+                        }
+                        return new string[] { "RSCP", "NuNu" };
                     case "RSRP":
                         float.TryParse(param.Split(":")[1], out tmpVal); tmpVal /= 10;//addeddby-omid-981227
                         if (tmpVal > 0)
