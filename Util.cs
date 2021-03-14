@@ -93,7 +93,7 @@ namespace TCPServer
         }
         private static async Task ProcessDeviceWantSync(StateObject state, string[] paramArray)
         {
-            ShowMessage($"Get SRQ From IMEI1 ={state.IMEI1}", ConsoleColor.DarkGray, ConsoleColor.Green,state.IMEI1);
+            ShowMessage($"Get SRQ From IMEI1 ={state.IMEI1}", ConsoleColor.DarkGray, ConsoleColor.Green, state.IMEI1);
             _ = Util.SyncDevice(state);
         }
         /// <summary>
@@ -207,7 +207,7 @@ namespace TCPServer
             }
             if (TerminateTest != null)
             {
-                ShowMessage($"Send TRM From IMEI1 ={state.IMEI1}", ConsoleColor.DarkGray, ConsoleColor.Green, state.IMEI1);                
+                ShowMessage($"Send TRM From IMEI1 ={state.IMEI1}", ConsoleColor.DarkGray, ConsoleColor.Green, state.IMEI1);
                 foreach (var item in JArray.Parse(TerminateTest))
                 {
                     var content = ("TRM#" + item.ToString().Replace("}", "").Replace(",", "#").
@@ -243,7 +243,7 @@ namespace TCPServer
         }
         private static async Task ProcessSYEDevice(StateObject state, string[] paramArray)
         {
-            ShowMessage($"Get SYE From IMEI1 ={state.IMEI1}", ConsoleColor.DarkGray, ConsoleColor.Green, state.IMEI1);            
+            ShowMessage($"Get SYE From IMEI1 ={state.IMEI1}", ConsoleColor.DarkGray, ConsoleColor.Green, state.IMEI1);
             _ = LogErrorAsync(new Exception($"SYE of Sync Process on IMEI1{state.IMEI1}"), $"IMEI ={state.IMEI1} IP= {state.IP}", String.Join(",", paramArray)).ConfigureAwait(false);
             int syncMasterId; int.TryParse(paramArray[1].Split(':')[1], out syncMasterId);
             await UpdateMasterDetailSync(state, syncMasterId, "SYE", true);
@@ -272,7 +272,7 @@ namespace TCPServer
         }
         private async static Task SyncDevice(StateObject state)
         {
-            ShowMessage($"Sync Time IMEI1 ={state.IMEI1}/IP={state.IP}", ConsoleColor.Yellow, ConsoleColor.Green, state.IMEI1);            
+            ShowMessage($"Sync Time IMEI1 ={state.IMEI1}/IP={state.IP}", ConsoleColor.Yellow, ConsoleColor.Green, state.IMEI1);
             try
             {
                 await AddSync(state).ConfigureAwait(false);
@@ -324,25 +324,25 @@ namespace TCPServer
                                 command.Parameters.AddWithValue("@IsCompeleted", iscompeleted);
                             }
                             await command.ExecuteScalarAsync().ConfigureAwait(false);
-                            tx.Commit();                            
+                            tx.Commit();
                             if (iscompeleted != null)
                             {
-                                ShowMessage($"Successfully Upload-SYNC  from IMEI1={state.IMEI1}/IP={state.IP}", ConsoleColor.Yellow, ConsoleColor.Green, state.IMEI1);                                
+                                ShowMessage($"Successfully Upload-SYNC  from IMEI1={state.IMEI1}/IP={state.IP}", ConsoleColor.Yellow, ConsoleColor.Green, state.IMEI1);
                                 _ = LogErrorAsync(new Exception($"Successfully Upload {step} of Sync Process on IMEI1{state.IMEI1}"), $"IMEI ={state.IMEI1} IP= {state.IP}").ConfigureAwait(false);
                             }
                             else
                             {
-                                ShowMessage($"Success: {step} of SYNC Process on IMEI1={state.IMEI1}/IP={state.IP}", ConsoleColor.Yellow, ConsoleColor.Green, state.IMEI1);                                
+                                ShowMessage($"Success: {step} of SYNC Process on IMEI1={state.IMEI1}/IP={state.IP}", ConsoleColor.Yellow, ConsoleColor.Green, state.IMEI1);
                                 _ = LogErrorAsync(new Exception($"{step} of Sync Process on IMEI1{state.IMEI1}"), $"IMEI ={state.IMEI1} IP= {state.IP}").ConfigureAwait(false);
-                            }                                
-                            
+                            }
+
                             result = true;
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    ShowMessage($"Failed:{step} of SYNC  IMEI1={state.IMEI1}/IP={state.IP}", ConsoleColor.Red, ConsoleColor.Green, state.IMEI1);                    
+                    ShowMessage($"Failed:{step} of SYNC  IMEI1={state.IMEI1}/IP={state.IP}", ConsoleColor.Red, ConsoleColor.Green, state.IMEI1);
                     _ = LogErrorAsync(ex, $"Failed { step} of Sync Process on IMEI1{ state.IMEI1}", $"IMEI ={state.IMEI1} IP= {state.IP}").ConfigureAwait(false);
                     tx.Rollback();
                     result = false;
@@ -428,7 +428,7 @@ namespace TCPServer
                                         var msg = ($"SYN#\"SId\":{syncMasterId}#\"Rest\":\"{TcpSettings.Rest}\"#\"TimeZone\":\"{timeZone}\"#");
                                         var content = msg.Encrypt("sample_shared_secret");
                                         AsynchronousSocketListener.Send(state.workSocket, TcpSettings.VIKey + " ," + content);
-                                        ShowMessage($"Send SYNC IMEI1={state.IMEI1}/IP={state.IP},TimZone={timeZone}", ConsoleColor.Yellow, ConsoleColor.Green, state.IMEI1);                                        
+                                        ShowMessage($"Send SYNC IMEI1={state.IMEI1}/IP={state.IP},TimZone={timeZone}", ConsoleColor.Yellow, ConsoleColor.Green, state.IMEI1);
                                         _ = LogErrorAsync(new Exception($"Send Sync IMEI1{state.IMEI1}"), msg, $"IMEI ={state.IMEI1} IP= {state.IP}").ConfigureAwait(false);
                                     }
                                 }
@@ -612,7 +612,7 @@ namespace TCPServer
                 }
                 catch (Exception ex)
                 {
-                    ShowMessage($"Don't Send USSD IMEI1={state.IMEI1}/IMEI2 ={state.IMEI2}/IP={state.IP}", ConsoleColor.Red, ConsoleColor.Green, state.IMEI1);                    
+                    ShowMessage($"Don't Send USSD IMEI1={state.IMEI1}/IMEI2 ={state.IMEI2}/IP={state.IP}", ConsoleColor.Red, ConsoleColor.Green, state.IMEI1);
                     _ = LogErrorAsync(ex, ex.Message, $"IMEI ={state.IMEI1},IMEI2={state.IMEI2} IP= {state.IP}").ConfigureAwait(false);
                 }
                 finally
@@ -669,7 +669,7 @@ namespace TCPServer
                 if (!string.IsNullOrEmpty(paramArray[2].Split(':')[1]))
                 {
                     int.TryParse(paramArray[2].Split(':')[1], out int definedTestMachineId);
-                    ShowMessage($"Time Error In Test.DefinedTestMachineId= {definedTestMachineId} has Error in Date/Time>>> \n>>> IMEI1={state.IMEI1}/IP={state.IP}", ConsoleColor.Red, ConsoleColor.Green, state.IMEI1);                    
+                    ShowMessage($"Time Error In Test.DefinedTestMachineId= {definedTestMachineId} has Error in Date/Time>>> \n>>> IMEI1={state.IMEI1}/IP={state.IP}", ConsoleColor.Red, ConsoleColor.Green, state.IMEI1);
                     await StopSendTest(definedTestMachineId).ConfigureAwait(false);
                 }
             }
@@ -720,7 +720,7 @@ namespace TCPServer
                 double lat = 0, lon = 0;
                 if (!string.IsNullOrEmpty(paramArray[5]) && paramArray[5].ToLower() != "nan")
                 {
-                    ShowMessage($"Get LOC From IMEI1={state.IMEI1}/IP={state.IP}", ConsoleColor.DarkGray, ConsoleColor.Green, state.IMEI1);                    
+                    ShowMessage($"Get LOC From IMEI1={state.IMEI1}/IP={state.IP}", ConsoleColor.DarkGray, ConsoleColor.Green, state.IMEI1);
                     if (paramArray[7].Split(':')[1] != ",,,,,,,,")
                     {
                         var gpsTmp = paramArray[7].Split(':')[1];
@@ -762,7 +762,7 @@ namespace TCPServer
         }
         private static void ProcessLowBatteryDevice(StateObject state, string[] paramArray)
         {
-            ShowMessage($"Device by IMEI1={state.IMEI1}/IP={state.IP} Low Battey", ConsoleColor.DarkGray, ConsoleColor.Green, state.IMEI1);            
+            ShowMessage($"Device by IMEI1={state.IMEI1}/IP={state.IP} Low Battey", ConsoleColor.DarkGray, ConsoleColor.Green, state.IMEI1);
         }
 
         /// <summary>
@@ -887,7 +887,7 @@ namespace TCPServer
                                         command.Parameters.AddWithValue("@Reciever", "Server");
                                         connection.Open();
                                         await command.ExecuteScalarAsync().ConfigureAwait(false);
-                                        ShowMessage($"Get UPR from IMEI1={stateobject.IMEI1}/IP={stateobject.IP}", ConsoleColor.Yellow, ConsoleColor.Green, stateobject.IMEI1);                                        
+                                        ShowMessage($"Get UPR from IMEI1={stateobject.IMEI1}/IP={stateobject.IP}", ConsoleColor.Yellow, ConsoleColor.Green, stateobject.IMEI1);
                                     }
                                 }
                                 catch (Exception ex)
@@ -921,7 +921,7 @@ namespace TCPServer
                                             //{
                                             await command.ExecuteScalarAsync().ConfigureAwait(false);
                                             AsynchronousSocketListener.Send(stateobject.workSocket, TcpSettings.VIKey + " ," + content);
-                                            ShowMessage($"Send RPL To IMEI1={stateobject.IMEI1}/IP={stateobject.IP}", ConsoleColor.Yellow, ConsoleColor.Green, stateobject.IMEI1);                                           
+                                            ShowMessage($"Send RPL To IMEI1={stateobject.IMEI1}/IP={stateobject.IP}", ConsoleColor.Yellow, ConsoleColor.Green, stateobject.IMEI1);
                                             //}
                                         }
                                     }
@@ -1091,7 +1091,7 @@ namespace TCPServer
                                         command.Parameters.AddWithValue("@Reciever", "Server");
                                         connection.Open();
                                         await command.ExecuteScalarAsync().ConfigureAwait(false);
-                                        ShowMessage($"Get UPG from  IMEI1={stateobject.IMEI1}/IP={stateobject.IP}", ConsoleColor.Yellow, ConsoleColor.Green, stateobject.IMEI1);                                        
+                                        ShowMessage($"Get UPG from  IMEI1={stateobject.IMEI1}/IP={stateobject.IP}", ConsoleColor.Yellow, ConsoleColor.Green, stateobject.IMEI1);
                                     }
                                 }
 
@@ -1150,8 +1150,8 @@ namespace TCPServer
                         bool isLoopingParam = false;
                         string witchTest = string.Empty;
                         string[] tParam = new string[2];
-                        string[] ActiveParam = new string[2]; 
-                        string[] SyncParam = new string[2]; 
+                        string[] ActiveParam = new string[2];
+                        string[] SyncParam = new string[2];
                         string[] AsyncParam = new string[2];
                         int TestId = 0; //omid added --981121                        
                         string inseretStatment = "insert into TestResult(";
@@ -1213,7 +1213,7 @@ namespace TCPServer
                                                         valueStatmenet = valueStatmenet + lat + " , " + lon.ToString() + " , ";
                                                         inseretStatment = inseretStatment + " Lat , Long, ";
                                                         if (DateTime.TryParse(paramArray[4].Substring(5, paramArray[4].Length - 5), out DateTime fromDevice))
-                                                        {      
+                                                        {
                                                             _ = Util.UpdateMachineLocation(state.IMEI1, state.IMEI2, lat.ToString(), lon.ToString(),
                                                             Speed, Speed2, Altitude, fromDevice, cpuTemp).ConfigureAwait(false);
                                                         }
@@ -1236,7 +1236,7 @@ namespace TCPServer
                                             }
                                             else
                                             {
-                                                //نکته: از طرف دستگاه آدرسی که پینگ با انصورت میگیرد برخی مواقع فرستاده نمیشود
+                                                //نکته: از طرف دستگاه آدرسی که پینگ باآن صورت میگیرد برخی مواقع فرستاده نمیشود
                                                 //پر میشودPingبا مقدار Ping و  فیلد
                                                 //اینمورد با آقای آیینی و خانوم وحیدپور بررسی شد و نتیجه گرفته شد که دستگاه نمی فرستد991218
                                                 inseretStatment += " NumOfPacketSent , NumOfPacketReceived, PercentOfPacketLost, Ping, Rtt, MinRtt,AvgRtt,MaxRtt,mdev,";
@@ -1322,7 +1322,7 @@ namespace TCPServer
                                                 valueStatmenet = valueStatmenet + "'" + rsVal + "'," + LacVal + "," + cidValue + ",";
                                             }
                                         }
-                                        else if (t[0].Contains("IFX") )
+                                        else if (t[0].Contains("IFX"))
                                         {
                                             if (t[1] != "NaN")
                                             {
@@ -1416,7 +1416,8 @@ namespace TCPServer
                                         }
                                         else if (t[0].Contains("HCSQ"))
                                         {
-                                            if ( t[1] != "NaN") {
+                                            if (t[1] != "NaN")
+                                            {
                                                 var hc = t[1].Split(',');
                                                 double.TryParse(hc[1], out double rssi);
                                                 rssi = (rssi - 121) + (new Random().NextDouble());
@@ -1495,19 +1496,19 @@ namespace TCPServer
                             }
                         }
                         if (isLoopingParam)
-                        {                            
+                        {
                             switch (witchTest)
-                            {                                
+                            {
                                 case "ActiveSet":
-                                    if(ActiveParam[0]!=null)
-                                        _= ActiveSet(inseretStatment, valueStatmenet, ActiveParam, TestId, createDate, state);
+                                    if (ActiveParam[0] != null)
+                                        _ = ActiveSet(inseretStatment, valueStatmenet, ActiveParam, TestId, createDate, state);
                                     if (SyncParam[0] != null)
                                         _ = NeighborSet(SyncType.Sync, SyncParam, TestId, createDate, lat, lon, state);
                                     if (AsyncParam[0] != null)
                                         _ = NeighborSet(SyncType.Async, AsyncParam, TestId, createDate, lat, lon, state);
                                     break;
                                 case "TraceRoute":
-                                      _= TraceRoute(inseretStatment, valueStatmenet, tParam, TestId, createDate, state);
+                                    _ = TraceRoute(inseretStatment, valueStatmenet, tParam, TestId, createDate, state);
                                     break;
                             }
                         }
@@ -1523,27 +1524,47 @@ namespace TCPServer
                 _ = LogErrorAsync(ex, "1436  ProcessTSCRecievedContent", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
             }
         }
-        private static async Task NeighborSet(SyncType SType, string[] t, int TestId, string CreateDate,double lat, double lon, StateObject state)
+        private static async Task NeighborSet(SyncType SType, string[] t, int TestId, string CreateDate, double lat, double lon, StateObject state)
         {
-            
+
             string insertStatment = $"insert into TestResultNeighbor (TestId,lat,long,CreateDate,SyncType,SetNumber" +
                                     $",Psc,UARFCN,SSC,Sttd,TotECIO,ECIO,Rscp,WinSize,RegisterDate) values";
             string valueStatmenet = $" ({TestId},{lat},{lon},'{CreateDate}',";
-           string fn = string.Empty;            
+            string fn = string.Empty;
             var ActSets = t[1].Split(',');
             if (int.TryParse(ActSets[0], out int LoopOfActSet))
-            {                
+            {
                 if (LoopOfActSet > 0)
                 {
                     if (LoopOfActSet == 1)
                     {
                         try
                         {
+                            double? ecio = null;
+                            ecio = Convert.ToDouble(ActSets[6]);
+                            if (ecio > 40)
+                            {
+                                ecio = null;
+                            }
+                            else
+                            {
+                                ecio *= -1;
+                            }
+                            double? rscp = null;
+                            rscp = Convert.ToDouble(ActSets[7]);
+                            if (rscp > 140)
+                            {
+                                rscp = null;
+                            }
+                            else
+                            {
+                                rscp *= -1;
+                            }
                             fn = valueStatmenet + $"{(SType == SyncType.Async ? "'Async'" : "'Sync'")},{LoopOfActSet},{Convert.ToInt32(ActSets[1])}," +
                                 $"{Convert.ToInt32(ActSets[2])},{Convert.ToInt32(ActSets[3])},{Convert.ToDouble(ActSets[4])},{Convert.ToDouble(ActSets[5]) * -1}," +
-                                $"{ Convert.ToDouble(ActSets[6]) * -1},{ Convert.ToDouble(ActSets[7]) * -1},{ Convert.ToDouble(ActSets[8])},'{DateTime.Now}')";
+                                $"{ ecio},{ rscp},{ Convert.ToDouble(ActSets[8])},'{DateTime.Now}')";
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             _ = LogErrorAsync(ex, "1352  NeighborSet. Convert Params has Error", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
                         }
@@ -1555,51 +1576,91 @@ namespace TCPServer
                         {
                             string tmpvalue = valueStatmenet + $"{(SType == SyncType.Async ? "'Async'" : "'Sync'")},{LoopOfActSet},";
                             if (i == LoopOfActSet)
+                            {
+                                try
                                 {
-                                        try
+                                    if (stIndex + 8 < ActSets.Length)
+                                    {
+                                        double? ecio = null;
+                                        ecio = Convert.ToDouble(ActSets[stIndex + 5]);
+                                        if (ecio > 40)
                                         {
-                                            if (stIndex + 8 < ActSets.Length)
-                                            {
-                                                tmpvalue += $"{ Convert.ToInt32(ActSets[stIndex])}," +
+                                            ecio = null;
+                                        }
+                                        else
+                                        {
+                                            ecio *= -1;
+                                        }
+                                        double? rscp = null;
+                                        rscp = Convert.ToDouble(ActSets[stIndex + 6]);
+                                        if (rscp > 140)
+                                        {
+                                            rscp = null;
+                                        }
+                                        else
+                                        {
+                                            rscp *= -1;
+                                        }
+                                        tmpvalue += $"{ Convert.ToInt32(ActSets[stIndex])}," +
                                                         $"{Convert.ToInt32(ActSets[stIndex + 1])},{Convert.ToInt32(ActSets[stIndex + 2])},{Convert.ToDouble(ActSets[stIndex + 3])},{Convert.ToDouble(ActSets[stIndex + 4]) * -1}," +
-                                                        $"{ Convert.ToDouble(ActSets[stIndex + 5]) * -1},{ Convert.ToDouble(ActSets[stIndex + 6]) * -1},{ Convert.ToDouble(ActSets[stIndex + 7])},'{DateTime.Now}')";
-                                            }
-                                            else
-                                            {
-                                                tmpvalue = string.Empty;
-                                                fn = fn.Remove(fn.Length - 1);
-                                                break;
-                                            }
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            _ = LogErrorAsync(ex, "1371 NeighborSet. Convert Params has Error", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
-                                        }
+                                                        $"{ecio},{ rscp},{ Convert.ToDouble(ActSets[stIndex + 7])},'{DateTime.Now}')";
+                                    }
+                                    else
+                                    {
+                                        tmpvalue = string.Empty;
+                                        fn = fn.Remove(fn.Length - 1);
+                                        break;
+                                    }
                                 }
-                                else
+                                catch (Exception ex)
                                 {
-                                        try
+                                    _ = LogErrorAsync(ex, "1371 NeighborSet. Convert Params has Error", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
+                                }
+                            }
+                            else
+                            {
+                                try
+                                {
+                                    if (stIndex + 8 < ActSets.Length)
+                                    {
+                                        double? ecio = null;
+                                        ecio = Convert.ToDouble(ActSets[stIndex + 5]);
+                                        if (ecio > 40)
                                         {
-                                            if (stIndex + 8 < ActSets.Length) 
-                                            {
-                                                tmpvalue += $"{ Convert.ToInt32(ActSets[stIndex])}," +
-                                                   $"{Convert.ToInt32(ActSets[stIndex + 1])},{Convert.ToInt32(ActSets[stIndex + 2])},{Convert.ToDouble(ActSets[stIndex + 3])},{Convert.ToDouble(ActSets[stIndex + 4]) * -1}," +
-                                                   $"{Convert.ToDouble(ActSets[stIndex + 5]) * -1},{ Convert.ToDouble(ActSets[stIndex + 6]) * -1},{ Convert.ToDouble(ActSets[stIndex + 7])},'{DateTime.Now}'),";
-                                            }
-                                            else
-                                            {
-                                                tmpvalue = string.Empty;
-                                                fn = fn.Remove(fn.Length - 1);
-                                                break;
-                                            }
+                                            ecio = null;
                                         }
-                                        catch (Exception ex)
+                                        else
                                         {
-                                            _ = LogErrorAsync(ex, "1384  NeighborSet. Convert Params has Error", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
+                                            ecio *= -1;
                                         }
-                                }                          
-                                fn += tmpvalue;
-                                stIndex += 8;
+                                        double? rscp = null;
+                                        rscp = Convert.ToDouble(ActSets[stIndex + 6]);
+                                        if (rscp > 140)
+                                        {
+                                            rscp = null;
+                                        }
+                                        else
+                                        {
+                                            rscp *= -1;
+                                        }
+                                        tmpvalue += $"{ Convert.ToInt32(ActSets[stIndex])}," +
+                                          $"{Convert.ToInt32(ActSets[stIndex + 1])},{Convert.ToInt32(ActSets[stIndex + 2])},{Convert.ToDouble(ActSets[stIndex + 3])},{Convert.ToDouble(ActSets[stIndex + 4]) * -1}," +
+                                          $"{ecio},{ rscp},{ Convert.ToDouble(ActSets[stIndex + 7])},'{DateTime.Now}'),";
+                                    }
+                                    else
+                                    {
+                                        tmpvalue = string.Empty;
+                                        fn = fn.Remove(fn.Length - 1);
+                                        break;
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    _ = LogErrorAsync(ex, "1384  NeighborSet. Convert Params has Error", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
+                                }
+                            }
+                            fn += tmpvalue;
+                            stIndex += 8;
                         }
                     }
                     try
@@ -1625,7 +1686,7 @@ namespace TCPServer
         /// <param name="testId"></param>
         /// <param name="createDate"></param>
         /// <param name="state"></param>
-        private static async Task  ActiveSet(string insertStatment, string valueStatmenet,
+        private static async Task ActiveSet(string insertStatment, string valueStatmenet,
             string[] t,
             int TestId,
             string CreateDate,
@@ -1635,18 +1696,38 @@ namespace TCPServer
             string fn = string.Empty;
             insertStatment += "ActiveSetNumber,PSC,UARFCN,SSC,STTD,TOTECIO,ECIO,RSCP,TPC,OVSF,WinSize,RegisterDate) values ";
             var ActSets = t[1].Split(',');
-            if(int.TryParse(ActSets[0],out int LoopOfActSet))
+            if (int.TryParse(ActSets[0], out int LoopOfActSet))
             {
-                if(LoopOfActSet > 0)
+                if (LoopOfActSet > 0)
                 {
                     if (LoopOfActSet == 1)
                     {
                         fn = valueStatmenet + $"{LoopOfActSet},";
                         try
                         {
+                            double? ecio = null;
+                            ecio = Convert.ToDouble(ActSets[6]);
+                            if (ecio > 40)
+                            {
+                                ecio = null;
+                            }
+                            else
+                            {
+                                ecio *= -1;
+                            }
+                            double? rscp = null;
+                            rscp = Convert.ToDouble(ActSets[7]);
+                            if (rscp > 140)
+                            {
+                                rscp = null;
+                            }
+                            else
+                            {
+                                rscp *= -1;
+                            }
                             fn += $"{Convert.ToDouble(ActSets[1])},{Convert.ToDouble(ActSets[2])},{Convert.ToDouble(ActSets[3])},{Convert.ToDouble(ActSets[4])}," +
-                                $"{Convert.ToDouble(ActSets[5]) * -1},{Convert.ToDouble(ActSets[6]) * -1},{Convert.ToDouble(ActSets[7]) * -1},{Convert.ToDouble(ActSets[8])}," +
-                                $"{Convert.ToDouble(ActSets[9])},{Convert.ToDouble(ActSets[10])},'{DateTime.Now}')";
+                                $"{Convert.ToDouble(ActSets[5]) * -1},{ecio},{rscp}" +
+                                $",{Convert.ToDouble(ActSets[8])},{Convert.ToDouble(ActSets[9])},{Convert.ToDouble(ActSets[10])},'{DateTime.Now}')";
                         }
                         catch (Exception ex)
                         {
@@ -1655,17 +1736,37 @@ namespace TCPServer
                     }
                     else
                     {
-                        int cntvalue = 1;                        
+                        int cntvalue = 1;
                         for (int i = 1; i <= LoopOfActSet; i++)
                         {
                             fn += valueStatmenet + $"{LoopOfActSet},";
-                            int stIndex = cntvalue; int enIndex =i*10;                            
+                            int stIndex = cntvalue; int enIndex = i * 10;
                             if (i == LoopOfActSet)
                             {
+                                double? ecio = null;
+                                ecio = Convert.ToDouble(ActSets[stIndex + 5]);
+                                if (ecio > 40)
+                                {
+                                    ecio = null;
+                                }
+                                else
+                                {
+                                    ecio *= -1;
+                                }
+                                double? rscp = null;
+                                rscp = Convert.ToDouble(ActSets[stIndex + 6]);
+                                if (rscp > 140)
+                                {
+                                    rscp = null;
+                                }
+                                else
+                                {
+                                    rscp *= -1;
+                                }
                                 try
-                                {                                    
+                                {
                                     fn += $"{Convert.ToDouble(ActSets[stIndex])},{Convert.ToDouble(ActSets[stIndex + 1])},{Convert.ToDouble(ActSets[stIndex + 2])},{Convert.ToDouble(ActSets[stIndex + 3])}," +
-                                                $"{Convert.ToDouble(ActSets[stIndex + 4]) * -1},{Convert.ToDouble(ActSets[stIndex + 5]) * -1},{Convert.ToDouble(ActSets[stIndex + 6]) * -1}," +
+                                                $"{Convert.ToDouble(ActSets[stIndex + 4]) * -1},{ecio},{rscp}," +
                                                 $"{Convert.ToDouble(ActSets[stIndex + 7])},{Convert.ToDouble(ActSets[stIndex + 8])},{Convert.ToDouble(ActSets[stIndex + 9])}," +
                                                 $"'{DateTime.Now}')";
                                 }
@@ -1677,9 +1778,29 @@ namespace TCPServer
                             else
                             {
                                 try
-                                {                                   
+                                {
+                                    double? ecio = null;
+                                    ecio = Convert.ToDouble(ActSets[stIndex + 5]);
+                                    if (ecio > 40)
+                                    {
+                                        ecio = null;
+                                    }
+                                    else
+                                    {
+                                        ecio *= -1;
+                                    }
+                                    double? rscp = null;
+                                    rscp = Convert.ToDouble(ActSets[stIndex + 6]);
+                                    if (rscp > 140)
+                                    {
+                                        rscp = null;
+                                    }
+                                    else
+                                    {
+                                        rscp *= -1;
+                                    }
                                     fn += $"{Convert.ToDouble(ActSets[stIndex])},{Convert.ToDouble(ActSets[stIndex + 1])},{Convert.ToDouble(ActSets[stIndex + 2])},{Convert.ToDouble(ActSets[stIndex + 3])}," +
-                                                $"{Convert.ToDouble(ActSets[stIndex + 4]) * -1},{Convert.ToDouble(ActSets[stIndex + 5]) * -1},{Convert.ToDouble(ActSets[stIndex + 6]) * -1}," +
+                                                $"{Convert.ToDouble(ActSets[stIndex + 4]) * -1},{ecio},{rscp}," +
                                                 $"{Convert.ToDouble(ActSets[stIndex + 7])},{Convert.ToDouble(ActSets[stIndex + 8])},{Convert.ToDouble(ActSets[stIndex + 9])}," +
                                                 $"'{DateTime.Now}'),";
                                 }
@@ -1687,9 +1808,9 @@ namespace TCPServer
                                 {
                                     _ = LogErrorAsync(ex, "1476 ActiveSet. Convert Params has Error", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
                                 }
-                            }                            
-                            cntvalue += enIndex;
-                        }                        
+                            }
+                            cntvalue = enIndex + 1;
+                        }
                     }
                     try
                     {
@@ -1700,7 +1821,7 @@ namespace TCPServer
                         _ = LogErrorAsync(ex, "1563 ActiveSet", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
                     }
                 }
-               
+
             }
 
         }
@@ -1716,16 +1837,16 @@ namespace TCPServer
         /// <param name="CreateDate">Date From Device</param>
         /// <param name="state"></param>
         /// <returns></returns>
-        private static async Task TraceRoute(string insertStatment, string valueStatmenet, string[] t,int TestId,string CreateDate,StateObject state)
+        private static async Task TraceRoute(string insertStatment, string valueStatmenet, string[] t, int TestId, string CreateDate, StateObject state)
         {
-            var tmpVstat = valueStatmenet =  valueStatmenet.Replace("Values", "");
+            var tmpVstat = valueStatmenet = valueStatmenet.Replace("Values", "");
             var tmpStat = insertStatment;
-            insertStatment+= "TraceRoute,";
+            insertStatment += "TraceRoute,";
             var dd = System.Text.RegularExpressions.Regex.Split(t[1], "traceroute");
-            string tmpValue, finalvalue=string.Empty;
+            string tmpValue, finalvalue = string.Empty;
             for (int ii = 1; ii < dd.Length; ii++)
             {
-                var curTr = dd[ii].Split('\n');                
+                var curTr = dd[ii].Split('\n');
                 if (curTr.Length - 1 > 1)
                 {
                     tmpValue = valueStatmenet + $"'{curTr[0]}',";
@@ -1779,8 +1900,8 @@ namespace TCPServer
                 else
                 {
                     tmpStat += "TraceRoute,RegisterDate) values ";
-                    tmpVstat +=  $"'{curTr[0]}','{DateTime.Now.ToString()}')";
-                    _= InsertTestResult($"{tmpStat} {tmpVstat}", TestId, CreateDate, state);
+                    tmpVstat += $"'{curTr[0]}','{DateTime.Now.ToString()}')";
+                    _ = InsertTestResult($"{tmpStat} {tmpVstat}", TestId, CreateDate, state);
                 }
 
             }
@@ -1788,12 +1909,12 @@ namespace TCPServer
             {
                 await InsertTestResult($"{insertStatment} {finalvalue} ", TestId, CreateDate, state);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _ = LogErrorAsync(ex, "1630  TraceRoute", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
             }
         }
-        
+
         private static async Task InsertTestResult(string testResult, int TestId, string createDate, StateObject state)
         {
             try
@@ -1867,7 +1988,7 @@ namespace TCPServer
                     case "PCI":  //PID change to PCI Data:991124.
                         return new string[] { "PCI", param.Split(":")[1] };
                     case "EONS":
-                        return new string[] { "EONS ", param.Split(":")[1]};
+                        return new string[] { "EONS ", param.Split(":")[1] };
                     case "MCC-MNC":
                         var vals = param.Split(":")[1].Split("-");
                         return new string[] { "MCC", vals[0], "MNC", vals[1] };
@@ -1937,7 +2058,7 @@ namespace TCPServer
                                     return new string[] { "DLBW", "NuNu" };
                             }
                         };
-                        return new string[] { "DLBW", dlbw.ToString() };                        
+                        return new string[] { "DLBW", dlbw.ToString() };
                     case "LAC":
                         int resL = 0;
                         if ((param.Split(":")[1]).Contains("0x")) //اگر هگزاست تبدیل شود به دسیمال
@@ -1955,7 +2076,7 @@ namespace TCPServer
                         return new string[] { "LAC", "NuNu" };
                     case "ULBW":
                         int ulbw = 0;
-                        if (int.TryParse(param.Split(":")[1], out  ulbw)) 
+                        if (int.TryParse(param.Split(":")[1], out ulbw))
                         {
                             switch (ulbw)
                             {
@@ -2017,33 +2138,35 @@ namespace TCPServer
                         return new string[] { "TAC", "NuNu" };
                     case "RXLEV":
                         return new string[] { "RXLevel", param.Split(":")[1] };
-                    case "ECIO":
-                        if (float.TryParse((param.Split(":")[1]).ToString(), out tmpVal))
-                        {
-                            //check  ECIO > 40 ignore //991218
-                            if (tmpVal> 40)
-                            {
-                                return new string[] { "ECIO", "NuNu" };
-                            }
-                            tmpVal *= -1; //addedby-omid-981227
-                            return new string[] { "ECIO", tmpVal.ToString() };
-                        }
-                        return new string[] { "ECIO", "NuNu" };
+                    //ECIO Check in ActiveSet. 991223
+                    //case "ECIO":
+                    //    if (float.TryParse((param.Split(":")[1]).ToString(), out tmpVal))
+                    //    {
+                    //        //check  ECIO > 40 ignore //991218
+                    //        if (tmpVal > 40)
+                    //        {
+                    //            return new string[] { "ECIO", "NuNu" };
+                    //        }
+                    //        tmpVal *= -1; //addedby-omid-981227
+                    //        return new string[] { "ECIO", tmpVal.ToString() };
+                    //    }
+                    //    return new string[] { "ECIO", "NuNu" };
                     case "RSRQ":
                         float.TryParse(param.Split(":")[1], out tmpVal); tmpVal /= 10; //addedby-omid-981227
                         return new string[] { "RSRQ", tmpVal.ToString() };
-                    case "RSCP":
-                        if(float.TryParse(param.Split(":")[1], out tmpVal))
-                        {
-                            //check RSCP > 140 ignore   //991218
-                            if (tmpVal > 140)
-                            {
-                                return new string[] { "RSCP", "NuNu" };
-                            }
-                            tmpVal *= -1;//addeddby-omid-981227
-                            return new string[] { "RSCP", tmpVal.ToString() };
-                        }
-                        return new string[] { "RSCP", "NuNu" };
+                    //Rscp Check in ActiveSet. 991223
+                    //case "RSCP":
+                    //    if (float.TryParse(param.Split(":")[1], out tmpVal))
+                    //    {
+                    //        //check RSCP > 140 ignore   //991218
+                    //        if (tmpVal > 140)
+                    //        {
+                    //            return new string[] { "RSCP", "NuNu" };
+                    //        }
+                    //        tmpVal *= -1;//addeddby-omid-981227
+                    //        return new string[] { "RSCP", tmpVal.ToString() };
+                    //    }
+                    //    return new string[] { "RSCP", "NuNu" };
                     case "RSRP":
                         float.TryParse(param.Split(":")[1], out tmpVal); tmpVal /= 10;//addeddby-omid-981227
                         if (tmpVal > 0)
@@ -2073,7 +2196,7 @@ namespace TCPServer
                     case "SYSMODE":  //1:2G , 4:3G, 8:4G
                         int sysmode;
                         if (int.TryParse(param.Split(":")[1], out sysmode))
-                        {                           
+                        {
                             return new string[] { "SystemMode", sysmode.ToString() };
                         }
                         else
@@ -2141,21 +2264,21 @@ namespace TCPServer
                         TcpSettings.serverPath = param.Split(":")[1];
                         break;
                     case "Up_time_redirect": //Upload,Download                    
-                        if (double.TryParse(param.Split(":")[1], out double  sd))
+                        if (double.TryParse(param.Split(":")[1], out double sd))
                         {
                             return new string[] { "Up_time_redirect", sd.ToString() };
                         }
                         return new string[] { "Up_time_redirect", "NuNu" };
                     case "Up_time_namelookup": //Upload,Download  
                         {
-                            if (double.TryParse(param.Split(":")[1], out double  utm))
+                            if (double.TryParse(param.Split(":")[1], out double utm))
                             {
                                 return new string[] { "Up_time_namelookup", utm.ToString() };
                             }
                             return new string[] { "Up_time_namelookup", "NuNu" };
                         }
                     case "Up_time_connect": //Upload,Download                    
-                        if (double.TryParse(param.Split(":")[1], out double  utr))
+                        if (double.TryParse(param.Split(":")[1], out double utr))
                         {
                             return new string[] { "Up_time_connect", utr.ToString() };
                         }
@@ -2327,8 +2450,8 @@ namespace TCPServer
                             return new string[] { "Dl_speed_upload", dsp.ToString() };
                         }
                         return new string[] { "Dl_speed_upload", "NuNu" };
-                    case "ActiveSET":                        
-                    case "SyncNeighborSET":                        
+                    case "ActiveSET":
+                    case "SyncNeighborSET":
                     case "AsyncNeighborSET":
                         return param.Split(":");
                     case "PingTime":
@@ -2336,7 +2459,7 @@ namespace TCPServer
                         {
                             return new string[] { "PingTime", pt.ToString() };
                         }
-                        return new string[] { "PingTime", "NuNu" };                        
+                        return new string[] { "PingTime", "NuNu" };
                     default:
                         break;
                 }
@@ -2529,7 +2652,7 @@ namespace TCPServer
                         state.Timer.AutoReset = true;
                         state.lastDateTimeConnected = DateTime.Now;
                         state.Timer.Start();
-                    }                    
+                    }
                     //first time , register device
                     if (!string.IsNullOrEmpty(Array.Find(paramArray, element => element.Contains("FWVer"))))
                     {
@@ -2537,16 +2660,16 @@ namespace TCPServer
                         var TDD = Array.Find(paramArray, element => element.Contains("TDD"));
                         if (!string.IsNullOrEmpty(FWVer)) //version Exist
                         {
-                            _ = Util.UpdateMachineStateByVersion(state.IMEI1, state.IMEI2, true, 
-                                !string.IsNullOrEmpty(FWVer)?FWVer.Split(":")[1]:string.Empty
-                                ,!string.IsNullOrEmpty(TDD)?TDD.Split(":")[1]:string.Empty );
-                        }                        
+                            _ = Util.UpdateMachineStateByVersion(state.IMEI1, state.IMEI2, true,
+                                !string.IsNullOrEmpty(FWVer) ? FWVer.Split(":")[1] : string.Empty
+                                , !string.IsNullOrEmpty(TDD) ? TDD.Split(":")[1] : string.Empty);
+                        }
                     }
                     else //Version Don't Exist
                     {
                         _ = Util.UpdateMachineState(state.IMEI1, state.IMEI2, true);
                     }
-                    ShowMessage($"Get MID FRom  IMEI1={state.IMEI1}/IP={state.IP}", ConsoleColor.Cyan, ConsoleColor.Green, state.IMEI1);                   
+                    ShowMessage($"Get MID FRom  IMEI1={state.IMEI1}/IP={state.IP}", ConsoleColor.Cyan, ConsoleColor.Green, state.IMEI1);
                     // _ = Util.SyncDevice(state);
                 }
 
@@ -2645,7 +2768,7 @@ namespace TCPServer
         }
         internal static async Task SendWaitingTest(StateObject stateObject)
         {
-            
+
             string definedTest = "";
             using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
@@ -2666,8 +2789,8 @@ namespace TCPServer
                         $"             when TestTypeId = 2 then '2' + cast(TestDataTypeId as nvarchar(10)) " +
                         $"             when TestTypeId = 4 then '4' + " +
                         $"				case when testdataid in(3, 4) then cast(TestDataId as nvarchar(10)) " +
-                        $"                     else cast(TestDataId as nvarchar(10)) + cast(TestDataTypeId as nvarchar(10)) end" +                  
-                        $"              when TestTypeId = 5 then '5' + cast(OTTServiceId as nvarchar(5)) + cast(OTTServiceTypeId as nvarchar(5)) " +      
+                        $"                     else cast(TestDataId as nvarchar(10)) + cast(TestDataTypeId as nvarchar(10)) end" +
+                        $"              when TestTypeId = 5 then '5' + cast(OTTServiceId as nvarchar(5)) + cast(OTTServiceTypeId as nvarchar(5)) " +
                         $" end TestType, " +
                         $" replace(CONVERT(varchar(26),DTM.BeginDate, 121),N':',N'-') BeginDate, " +
                         $" replace(CONVERT(varchar(26),DTM.EndDate, 121),N':',N'-') EndDate " +
@@ -2678,7 +2801,7 @@ namespace TCPServer
                         $" DTM.BeginDate > getdate() and " +
                         $" DTM.Status = 0 " +/*status = 0, not test*/
                         $" and m.IMEI1 = @IMEI1 for json path";
-                     
+
                     using (SqlCommand command = new SqlCommand(sql, connection))
                     {
                         command.CommandTimeout = 100000;
@@ -2762,7 +2885,7 @@ namespace TCPServer
                             {
                                 connection.Open();
                                 sql = await Trans_AddVersionDetail(stateObject, curReq, connection, sql, content);
-                                ShowMessage($"Send UPD To IMEI1={stateObject.IMEI1}/IP={stateObject.IP}", ConsoleColor.Yellow, ConsoleColor.Green, stateObject.IMEI1);                                
+                                ShowMessage($"Send UPD To IMEI1={stateObject.IMEI1}/IP={stateObject.IP}", ConsoleColor.Yellow, ConsoleColor.Green, stateObject.IMEI1);
                                 _ = Util.LogErrorAsync(new Exception($"UPD Send To IMEI1=  {stateObject.IMEI1}"), content, $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
                             }
                         }
@@ -2802,7 +2925,7 @@ namespace TCPServer
                                         if (AsynchronousSocketListener.DeviceList.Exists(x => x.IMEI1 == stateObject.IMEI1))
                                         {
                                             sql = await Trans_AddVersionDetail(stateObject, curReq, connection, sql, content);
-                                            ShowMessage($"Send UPD To IMEI1={stateObject.IMEI1}/IP={stateObject.IP}", ConsoleColor.Yellow, ConsoleColor.Green, stateObject.IMEI1);                                            
+                                            ShowMessage($"Send UPD To IMEI1={stateObject.IMEI1}/IP={stateObject.IP}", ConsoleColor.Yellow, ConsoleColor.Green, stateObject.IMEI1);
                                             _ = Util.LogErrorAsync(new Exception($"UPD Send To IMEI1=  {stateObject.IMEI1}"), content, $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
                                         }
                                     }
@@ -2843,7 +2966,7 @@ namespace TCPServer
                                                     if (AsynchronousSocketListener.DeviceList.Exists(x => x.IMEI1 == stateObject.IMEI1))
                                                     {
                                                         sql = await Trans_AddVersionDetail(stateObject, curReq, connection, sql, content);
-                                                        ShowMessage($"Send UPD To IMEI1={stateObject.IMEI1}/IP={stateObject.IP}", ConsoleColor.Yellow, ConsoleColor.Green, stateObject.IMEI1);                                                       
+                                                        ShowMessage($"Send UPD To IMEI1={stateObject.IMEI1}/IP={stateObject.IP}", ConsoleColor.Yellow, ConsoleColor.Green, stateObject.IMEI1);
                                                         _ = Util.LogErrorAsync(new Exception($"UPD Send To IMEI1={stateObject.IMEI1} IP={stateObject.IP}"), content, $"IMEI1={stateObject.IMEI1} Ip={stateObject.IP}");
                                                     }
                                                 }
@@ -2943,7 +3066,7 @@ namespace TCPServer
                     com3.Parameters.AddWithValue("@VersionId", item[0]["Id"].ToString());
                     id = await com3.ExecuteScalarAsync().ConfigureAwait(false);
                     tx.Commit();
-                    ShowMessage($"Send UPD To IMEI1={IMEI1} again.Beacuse device Don't Respond ", ConsoleColor.Yellow, ConsoleColor.Green, IMEI1);                   
+                    ShowMessage($"Send UPD To IMEI1={IMEI1} again.Beacuse device Don't Respond ", ConsoleColor.Yellow, ConsoleColor.Green, IMEI1);
                     _ = Util.LogErrorAsync(new Exception("Send UPD To Device after 2 minute again"), "Send UPD To Device after 2 minute again", IMEI1).ConfigureAwait(false);
                 }
                 catch (Exception ex)
@@ -3012,7 +3135,7 @@ namespace TCPServer
                 }
             }
         }
-        internal static async Task UpdateMachineStateByVersion(string IMEI1, string IMEI2, bool IsConnected, string machineVersion = "",string TDD="")
+        internal static async Task UpdateMachineStateByVersion(string IMEI1, string IMEI2, bool IsConnected, string machineVersion = "", string TDD = "")
         {
             using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
             {
@@ -3183,9 +3306,9 @@ namespace TCPServer
             return retVal;
         }
 
-        public static void ShowMessage(string msg,ConsoleColor colorBefore=ConsoleColor.White,ConsoleColor colorAfter=ConsoleColor.Green,string imei="All")
+        public static void ShowMessage(string msg, ConsoleColor colorBefore = ConsoleColor.White, ConsoleColor colorAfter = ConsoleColor.Green, string imei = "All")
         {
-            if (TcpSettings.Imei1Log == "All" || imei == TcpSettings.Imei1Log )
+            if (TcpSettings.Imei1Log == "All" || imei == TcpSettings.Imei1Log)
             {
                 Console.ForegroundColor = colorBefore;
                 ConsolePrint.PrintLine('*');
