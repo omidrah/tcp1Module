@@ -1288,38 +1288,47 @@ namespace TCPServer
                                             if (t[1] != "NaN")
                                             {
                                                 var cgParm = t[1].Split(',');
-                                                string rsVal = string.Empty;
-                                                int.TryParse(cgParm[1], out int regstat);
-                                                switch (regstat)
+                                                
+                                                    string rsVal = string.Empty;
+                                                    int.TryParse(cgParm[1], out int regstat);
+                                                    switch (regstat)
+                                                    {
+                                                        case 0:
+                                                            rsVal = "Not registered, not currently searching ";
+                                                            break;
+                                                        case 1:
+                                                            rsVal = "Registered, home network";
+                                                            break;
+                                                        case 2:
+                                                            rsVal = "Not registered, currently searching.";
+                                                            break;
+                                                        case 3:
+                                                            rsVal = "Registration denied";
+                                                            break;
+                                                        case 4:
+                                                            rsVal = "Unknown";
+                                                            break;
+                                                        case 5:
+                                                            rsVal = "Registered, roaming";
+                                                            break;
+                                                    }
+                                                if (cgParm.Length > 2) //CGREG has 4 params
                                                 {
-                                                    case 0:
-                                                        rsVal = "Not registered, not currently searching ";
-                                                        break;
-                                                    case 1:
-                                                        rsVal = "Registered, home network";
-                                                        break;
-                                                    case 2:
-                                                        rsVal = "Not registered, currently searching.";
-                                                        break;
-                                                    case 3:
-                                                        rsVal = "Registration denied";
-                                                        break;
-                                                    case 4:
-                                                        rsVal = "Unknown";
-                                                        break;
-                                                    case 5:
-                                                        rsVal = "Registered, roaming";
-                                                        break;
-                                                }
-                                                int LacVal = 0;
-                                                // هگزاست تبدیل شود به دسیمال                                            
-                                                LacVal = Convert.ToInt32(cgParm[2], 16);
-                                                // هگزاست تبدیل شود به دسیمال    
-                                                int cidValue = -1;
-                                                cidValue = Convert.ToInt32(cgParm[3], 16);
+                                                    int LacVal = 0;
+                                                    // هگزاست تبدیل شود به دسیمال                                            
+                                                    LacVal = Convert.ToInt32(cgParm[2], 16);
+                                                    // هگزاست تبدیل شود به دسیمال    
+                                                    int cidValue = -1;
+                                                    cidValue = Convert.ToInt32(cgParm[3], 16);
 
-                                                inseretStatment += "Reg_stat,LAC,CID,";
-                                                valueStatmenet = valueStatmenet + "'" + rsVal + "'," + LacVal + "," + cidValue + ",";
+                                                    inseretStatment += "Reg_stat,LAC,CID,";
+                                                    valueStatmenet = valueStatmenet + "'" + rsVal + "'," + LacVal + "," + cidValue + ",";
+                                                }
+                                                else //CREG. cparm has only 2 params
+                                                {
+                                                    inseretStatment += "Reg_stat,";
+                                                    valueStatmenet = valueStatmenet + "'" + rsVal + "',";
+                                                }                                                
                                             }
                                         }
                                         else if (t[0].Contains("IFX"))
@@ -2000,7 +2009,8 @@ namespace TCPServer
                         return new string[] { "BSIC", param.Split(":")[1] };
                     case "FrequencyBand": //omid updated
                         return new string[] { "FregBand", param.Split(":")[1] };
-                    case "CGREG":
+                    case "CGREG": //For Relish Modem
+                    case "CREG":
                         return new string[] { "CGREG", param.Split(":")[1] };
                     case "SYSINFOEX":
                         return new string[] { "IFX", param.Split(":")[1] };
