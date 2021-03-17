@@ -1147,6 +1147,7 @@ namespace TCPServer
                         string createDate = string.Empty;
                         double lon = 0;
                         double lat = 0;
+                        bool haslatlonValue = false;
                         bool isLoopingParam = false;
                         string witchTest = string.Empty;
                         string[] tParam = new string[2];
@@ -1222,6 +1223,7 @@ namespace TCPServer
                                                             _ = Util.UpdateMachineLocation(state.IMEI1, state.IMEI2, lat.ToString(), lon.ToString(),
                                                               Speed, Speed2, Altitude, null, cpuTemp).ConfigureAwait(false);
                                                         }
+                                                        haslatlonValue = true; //lat , long has value and not null
                                                     }
                                                 }
                                             }
@@ -1266,11 +1268,14 @@ namespace TCPServer
                                                 SyncParam = t;
                                             }
                                         }
-                                        else if (t[0].Contains("AsyncNeighborSET") && t[1] != "NULL")
+                                        else if (t[0].Contains("AsyncNeighborSET"))
                                         {
-                                            isLoopingParam = true;
-                                            witchTest = "ActiveSet";
-                                            AsyncParam = t;
+                                            if (t[1] != "NULL")
+                                            {
+                                                isLoopingParam = true;
+                                                witchTest = "ActiveSet";
+                                                AsyncParam = t;
+                                            }
                                         }
                                         else if (t[0].Contains("EONS"))
                                         {
@@ -1523,7 +1528,7 @@ namespace TCPServer
                         }
                         else
                         {
-                            await InsertTestResult($"{inseretStatment} RegisterDate) {valueStatmenet} '{DateTime.Now}' )", TestId, createDate, state);
+                            await InsertTestResult($"{inseretStatment} RegisterDate) {valueStatmenet} '{DateTime.Now}' )", TestId, createDate, state, haslatlonValue);
                         }
                     }
                 }
@@ -1924,7 +1929,7 @@ namespace TCPServer
             }
         }
 
-        private static async Task InsertTestResult(string testResult, int TestId, string createDate, StateObject state)
+        private static async Task InsertTestResult(string testResult, int TestId, string createDate, StateObject state, bool haslatlongValue = false)
         {
             try
             {
@@ -1932,14 +1937,15 @@ namespace TCPServer
                 {
                     connection.Open();
                     var tx = connection.BeginTransaction();
-                    string sql = testResult;
+                    string sql = testResult + " ;select SCOPE_IDENTITY()";
                     SqlCommand command = new SqlCommand(sql, connection);
                     command.CommandTimeout = 100000;
                     command.CommandType = CommandType.Text;
                     command.Transaction = tx;
                     try
                     {
-                        await command.ExecuteNonQueryAsync().ConfigureAwait(false);
+                        var testResultId = (decimal)await command.ExecuteScalarAsync().ConfigureAwait(false);
+                        
                         sql = $" update machine set LastTestResult = @createDate where id = (select MachineId from DefinedTestMachine where id =@TestId)";
                         var com2 = new SqlCommand(sql, connection);
                         com2.CommandTimeout = 100000;
@@ -1951,6 +1957,10 @@ namespace TCPServer
                         {
                             await com2.ExecuteScalarAsync().ConfigureAwait(false);
                             tx.Commit();
+                            if (haslatlongValue)
+                            {
+                               _= UpdateTestResultAnotherMachineInGoupHasNullLatLon(testResultId, TestId);
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -1974,6 +1984,95 @@ namespace TCPServer
                 _ = LogErrorAsync(ex, "1681  insertTestResult", $"IMEI1={state.IMEI1} Ip={state.IP}").ConfigureAwait(false);
             }
         }
+
+        private static async Task UpdateTestResultAnotherMachineInGoupHasNullLatLon(decimal testResultId, int testId)
+        {
+            try
+            {
+
+                using (SqlConnection connection = new SqlConnection(TcpSettings.ConnectionString))
+                {
+                    connection.Open();
+                    var tx = connection.BeginTransaction();
+                    string sql = " select machinegroupId from machine  where id =(select MachineId from DefinedTestMachine where id = @TestId)";
+                    SqlCommand command = new SqlCommand(sql, connection);
+                    command.CommandTimeout = 100000;
+                    command.CommandType = CommandType.Text;
+                    command.Parameters.AddWithValue("@TestId", testId);
+                    command.Transaction = tx;
+                    try
+                    {
+                        var machinegroupId =(int) await command.ExecuteScalarAsync().ConfigureAwait(false);
+                        sql = $" select * from testResult  where id =@testResultId";
+                        var com2 = new SqlCommand(sql, connection);
+                        com2.CommandTimeout = 100000;
+                        com2.CommandType = CommandType.Text;
+                        com2.Transaction = tx;                        
+                        com2.Parameters.AddWithValue("@testResultId", testResultId);
+                        try
+                        {
+                            double latit = 0; double longit = 0; DateTime curDate = DateTime.Now;
+                            var reader = await com2.ExecuteReaderAsync().ConfigureAwait(false);                           
+                            if (reader.Read())
+                            {                               
+                                double.TryParse(reader["Lat"].ToString(),out latit);
+                                double.TryParse(reader["Long"].ToString(),out longit);
+                                curDate = Convert.ToDateTime(reader["createdate"].ToString());                                                                
+                            }
+                            reader.Close();                            
+                            sql = $" update TestResult  set Lat= @lon_avg,Long =@lot_avg, Layer3Messages = '1' " +
+                                $" from machine m inner join DefinedTestMachine dtm on dtm.MachineId = m.Id " +
+                                $" inner join TestResult tr on tr.TestId = dtm.Id where tr.CreateDate > @startDate " +
+                                $" and tr.CreateDate < DATEADD(second, -3, @startDate)" +
+                                $" and m.MachineGroupId = @groupId and tr.Lat is null " +
+                                $" Select @@RowCount rowcountAffected";
+                            try
+                            {
+                                var com3 = new SqlCommand(sql, connection);
+                                com3.CommandTimeout = 100000;
+                                com3.CommandType = CommandType.Text;
+                                com3.Transaction = tx;
+                                com3.Parameters.AddWithValue("@startDate", curDate);
+                                com3.Parameters.AddWithValue("@groupId", machinegroupId);
+                                com3.Parameters.AddWithValue("@lon_avg", longit);
+                                com3.Parameters.AddWithValue("@lot_avg", latit);
+                               var dd = (int)await com3.ExecuteScalarAsync().ConfigureAwait(false);
+                                tx.Commit();
+                                if (dd > 0)
+                                {
+                                    _ = LogErrorAsync(new Exception("##Update latLON"), "UpdateTestResultAnotherMachineInGoupHasNullLatLon",$"countof Update >>{dd}").ConfigureAwait(false);
+
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                _ = LogErrorAsync(ex, "2037  update TestResult On Machine Null lat and long");
+                                tx.Rollback();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _ = LogErrorAsync(ex, "2043  select from testResult params ");
+                            tx.Rollback();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _ = LogErrorAsync(ex, "2049  select machineGroupId  ");
+                        tx.Rollback();
+                    }
+                    finally
+                    {
+                        connection.Close();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _ = LogErrorAsync(ex, "1681  UpdateTestResultAnotherMachineInGoupHasNullLatLon", $"Id={testResultId} testId={testId}").ConfigureAwait(false);
+            }
+        }
+
         private static string[] ProcessTSCParams(string param)
         {
             if (param.Contains(":"))
