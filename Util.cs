@@ -2022,8 +2022,8 @@ namespace TCPServer
                             reader.Close();                            
                             sql = $" update TestResult  set Lat= @lon_avg,Long =@lot_avg, Layer3Messages = '1' " +
                                 $" from machine m inner join DefinedTestMachine dtm on dtm.MachineId = m.Id " +
-                                $" inner join TestResult tr on tr.TestId = dtm.Id where tr.CreateDate > DATEADD(second, -3, @startDate) " +
-                                $" and tr.CreateDate <@startDate " +
+                                $" inner join TestResult tr on tr.TestId = dtm.Id where tr.CreateDate > @startDate " +
+                                $" and tr.CreateDate < DATEADD(second, -3, @startDate)" +
                                 $" and m.MachineGroupId = @groupId and tr.Lat is null " +
                                 $" Select @@RowCount rowcountAffected";
                             try
